@@ -1,1 +1,7 @@
 db.sqllite3
+__pycache__
+.metadata/
+*.py[cod]
+static2/
+node_modules/
+manage.py

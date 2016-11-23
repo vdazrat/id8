@@ -19,6 +19,9 @@ from rest_framework import routers
 from p3app.pd_df_cache.views import DataFrameCacheViewSet
 from p3app.data_set.views import DataSetViewSet
 from p3app.pd_df_cache.views import DataFrameCacheDetailView
+import p3app.views as p3appviews
+from django.contrib.auth import views as auth_views
+
 
 
 router = routers.SimpleRouter()
@@ -26,7 +29,12 @@ router.register(r'dfcache',DataFrameCacheViewSet)
 router.register(r'dataset',DataSetViewSet)
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
+
+    url(r'^banner/',p3appviews.banner,name="banner_view"),
+    url(r'^signin/$',p3appviews.signin,name='login'),
+    url(r'^logout/$',p3appviews.logout, name='logout'),
+    url(r'^home/$',p3appviews.home,name='home'),
+    url(r'^admin/',admin.site.urls),
     #url(r'^api/dfcache/',include('p3app.pd_df_cache.urls',namespace='pd_df_cache')),
     url(r'^api/',include(router.urls,namespace='api')),
     #url(r'^api/data_set', include('p3app.data_set.urls')),

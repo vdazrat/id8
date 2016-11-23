@@ -103,6 +103,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+LOGIN_REDIRECT_URL = '/banner/'
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -131,6 +134,9 @@ REST_FRAMEWORK = {
 
 STATIC_URL = '/static/'
 STATIC_ROOT = 'project3/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'assets/dist/')
+]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = 'project3/media_root/'
 
