@@ -1,4 +1,4 @@
-db.sqllite3
+*.sqllite3
 __pycache__
 .metadata/
 *.py[cod]
