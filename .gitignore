@@ -1,7 +1,10 @@
 *.sqllite3
-__pycache__
+/__pycache__/
 .metadata/
 *.py[cod]
+*.pyc
+project3/__pycache__/urls.cpython-34.pyc
 static2/
 node_modules/
 manage.py
+test.xy
