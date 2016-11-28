@@ -3,6 +3,7 @@ from django.template import loader
 from django.contrib.auth.decorators import login_required
 from django.contrib import auth
 from django.contrib.auth import authenticate
+from p3app.dash_board.models import DashBoard
 
 
 # Create your views here.
@@ -28,8 +29,10 @@ def signin(request):
 
 @login_required(login_url='/signin/')
 def home(request):
+    # get the data for dashboards
+    dashboards = " ".join([dashboard.title for dashboard in DashBoard.objects.all()])
     template = loader.get_template('p3app/home.html')
-    return HttpResponse(template.render({},request))
+    return HttpResponse(template.render({"dashboards":dashboards},request))
 
 def logout(request):
     auth.logout(request)
