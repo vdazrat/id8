@@ -5,6 +5,8 @@ to contain any knod of content later.
 '''
 from django.db import models
 from p3app.data_set.models import DataSet
+from rest_framework import reverse
+
 
 class DashBoard(models.Model):
     title = models.TextField(blank=True,null=True)
@@ -17,9 +19,26 @@ class DashBoard(models.Model):
 
 
 class Cell(models.Model):
-    dashboard = models.ForeignKey(DashBoard)
+    dashboard = models.ForeignKey(DashBoard,related_name='cells')
     sequence = models.IntegerField(null=True,blank=True)
-    class Meta:
-        abstract = True
+
+    def get_related_object(self):
+        '''Get the related model instance object for this model via a onetoone relationship.
+        '''
+        related_models = [f.related_model for f in Cell._meta.get_fields() if(f.one_to_one)]
+        related_qs = [cls.objects.filter(cell=self) for cls in related_models if len(cls.objects.filter(cell=self))>0]
+        if len(related_qs) > 1:
+            raise DashBoardException("Cell data with id %d assosiated with multiple Cell types" %self.id)
+        if len(related_qs) < 1:
+            raise DashBoardException("Cell data with id %d not assosiated with any Cell types" %self.id)
+        if len(related_qs[0]) != 1:
+            raise DashBoardException("Cell data with id %d assosiated with multiple instances of same type" %self.id)
+        return related_qs[0][0]
+
+ 
+class DashBoardException(Exception):
+    def __init__(self,arg):
+        msg = arg
+
 
 

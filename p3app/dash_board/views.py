@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from .serializers import DashBoardSerializer
-from .models import DashBoard
+from .serializers import DashBoardSerializer,CellSerializer
+from .models import DashBoard,Cell
 from rest_framework import permissions
 from rest_framework import viewsets,renderers
 
@@ -16,6 +16,13 @@ class CSRFExemptMixin(object):
 class DashBoardViewSet(viewsets.ModelViewSet,CSRFExemptMixin):
     queryset = DashBoard.objects.all()
     serializer_class = DashBoardSerializer
+    #permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+    # just for testing, remove this later
+    permission_classes = [permissions.AllowAny,]
+
+class CellViewSet(viewsets.ModelViewSet,CSRFExemptMixin):
+    queryset = Cell.objects.all()
+    serializer_class = CellSerializer
     #permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
     # just for testing, remove this later
     permission_classes = [permissions.AllowAny,]
