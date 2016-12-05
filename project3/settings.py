@@ -25,7 +25,7 @@ SECRET_KEY = 'ns_s_sm0zoue-=y0j&mvt3z-*%bv8ysgkuvy8n7g+7ijk5k3il'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['0.0.0.0','192.168.1.103','127.0.0.1']
 
 
 # Application definition
@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'p3app',
     'p3app.pd_df_cache',
+    'p3app.dash_board',
+    'p3app.charts',
 ]
 
 MIDDLEWARE = [

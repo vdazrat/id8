@@ -87,8 +87,11 @@ const SideMenuSubItems = ({name,subItems,keyVal,subItem,onClick}) => {
           active ="active";
         }
         return(
-         <li className={"sub-item "+active} key={keyVal + '-'+i} onClick={()=>{onClick({name:name,subItem:i})}}>
-                    <a className="item-text">{v}</a>
+         <li className={"sub-item "+active} key={keyVal + '-'+i} onClick={()=>{
+          onClick({name:name,
+                   subItem:i,
+                    api:v.api})}}>
+                    <a className="item-text">{v.title}</a>
           </li>
       )});
     if(items.length > 0){

@@ -19,7 +19,7 @@ from rest_framework import routers
 from p3app.pd_df_cache.views import DataFrameCacheViewSet
 from p3app.data_set.views import DataSetViewSet
 from p3app.pd_df_cache.views import DataFrameCacheDetailView
-from p3app.dash_board.views import DashBoardViewSet
+from p3app.dash_board.views import DashBoardViewSet,CellViewSet
 import p3app.views as p3appviews
 from django.contrib.auth import views as auth_views
 
@@ -29,6 +29,8 @@ router = routers.SimpleRouter()
 router.register(r'dfcache',DataFrameCacheViewSet)
 router.register(r'dataset',DataSetViewSet)
 router.register(r'dashboard',DashBoardViewSet)
+router.register(r'cell',CellViewSet)
+
 
 urlpatterns = [
 
