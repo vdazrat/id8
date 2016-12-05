@@ -24543,6 +24543,9 @@
 		return {
 			onClick: function onClick(data) {
 				dispatch((0, _actions.sideMenuClick)(data));
+			},
+			onAdd: function onAdd(data) {
+				dispatch((0, _actions.clickSideMenuItem)(data));
 			}
 		};
 	};
@@ -24583,7 +24586,8 @@
 	var SideMenuComponent = function SideMenuComponent(_ref) {
 	  var sideMenuItems = _ref.sideMenuItems,
 	      selected = _ref.selected,
-	      onClick = _ref.onClick;
+	      onClick = _ref.onClick,
+	      onAdd = _ref.onAdd;
 	
 	  /*
 	  This is the main side menu component, which consists of the entire side nav menu:
@@ -24594,7 +24598,7 @@
 	  */
 	  var itemCounter = 0;
 	  var sideItems = sideMenuItems.map(function (sideItem) {
-	    return _react2.default.createElement(SideMenuItemName, _extends({ key: itemCounter, selected: selected, onClick: onClick }, sideItem, { keyVal: itemCounter++ }));
+	    return _react2.default.createElement(SideMenuItemName, _extends({ key: itemCounter, selected: selected, onClick: onClick, onAdd: onAdd }, sideItem, { keyVal: itemCounter++ }));
 	  });
 	
 	  return _react2.default.createElement(
@@ -24616,9 +24620,12 @@
 	var SideMenuItemName = function SideMenuItemName(_ref2) {
 	  var name = _ref2.name,
 	      subItems = _ref2.subItems,
+	      icon = _ref2.icon,
 	      keyVal = _ref2.keyVal,
 	      selected = _ref2.selected,
-	      _onClick = _ref2.onClick;
+	      _onClick = _ref2.onClick,
+	      addNew = _ref2.addNew,
+	      onAdd = _ref2.onAdd;
 	
 	  /*
 	   Component for a single menu of the side menu.
@@ -24629,7 +24636,7 @@
 	  if (selected.name === name) {
 	    active = "active";
 	  }
-	  return subItems.length > 0 ? _react2.default.createElement(
+	  return subItems.length > 0 || addNew !== undefined ? _react2.default.createElement(
 	    "article",
 	    { key: keyVal },
 	    _react2.default.createElement(
@@ -24638,14 +24645,14 @@
 	      _react2.default.createElement(
 	        "a",
 	        { className: "item-text" },
-	        _react2.default.createElement("i", { className: "fa fa-dashboard fa-lg" }),
+	        _react2.default.createElement("i", { className: "fa fa-" + icon + " fa-lg" }),
 	        " ",
 	        name
 	      ),
 	      " ",
 	      _react2.default.createElement("span", { className: "arrow" })
 	    ),
-	    _react2.default.createElement(SideMenuSubItems, { name: name, subItems: subItems, subItem: selected.name === name ? selected.subItem : -1, keyVal: keyVal, onClick: _onClick })
+	    _react2.default.createElement(SideMenuSubItems, { name: name, subItems: subItems, subItem: selected.name === name ? selected.subItem : -1, keyVal: keyVal, onClick: _onClick, addNew: addNew, onAdd: onAdd })
 	  ) : _react2.default.createElement(
 	    "article",
 	    null,
@@ -24657,7 +24664,7 @@
 	      _react2.default.createElement(
 	        "a",
 	        { className: "item-text" },
-	        _react2.default.createElement("i", { className: "fa fa-user fa-lg" }),
+	        _react2.default.createElement("i", { className: "fa fa-" + icon + " fa-lg" }),
 	        " ",
 	        name
 	      )
@@ -24670,7 +24677,9 @@
 	      subItems = _ref3.subItems,
 	      keyVal = _ref3.keyVal,
 	      subItem = _ref3.subItem,
-	      _onClick2 = _ref3.onClick;
+	      _onClick2 = _ref3.onClick,
+	      addNew = _ref3.addNew,
+	      onAdd = _ref3.onAdd;
 	
 	  /*
 	  Component for the subitems for a menu item.
@@ -24700,10 +24709,32 @@
 	      )
 	    );
 	  });
+	  if (addNew !== undefined) {
+	    // add the add new button
+	    items.push(function () {
+	      var active = '';
+	      if (subItem === "new") {
+	        active = "active";
+	      }
+	      return _react2.default.createElement(
+	        "li",
+	        { className: "sub-item new " + active, key: keyVal + '-' + items.length, onClick: function onClick() {
+	            onAdd({ name: name,
+	              subItem: "new"
+	            });
+	          } },
+	        _react2.default.createElement(
+	          "a",
+	          { className: "item-text" },
+	          addNew.title
+	        )
+	      );
+	    }());
+	  }
 	  if (items.length > 0) {
 	    return _react2.default.createElement(
 	      "ul",
-	      { id: "item" + keyVal, className: "sub-items collapse " + (subItem > -1 ? "in" : "") },
+	      { id: "item" + keyVal, className: "sub-items collapse " + (subItem === "new" || subItem > -1 ? "in" : "") },
 	      items
 	    );
 	  }
@@ -25342,6 +25373,7 @@
 	                /*
 	                No need to deal with sideMenuItems, only update the selected property
 	                */
+	
 	                return Object.assign({}, state, { selected: action.selected });
 	            }
 	        default:

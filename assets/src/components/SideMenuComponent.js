@@ -4,7 +4,7 @@ Components need to be pure functions, implement the same as one
 */
 import React, { PropTypes } from 'react'
 
-const SideMenuComponent = ({sideMenuItems,selected,onClick}) => {
+const SideMenuComponent = ({sideMenuItems,selected,onClick,onAdd}) => {
 /*
 This is the main side menu component, which consists of the entire side nav menu:
 Props that are passed to this component are:
@@ -13,8 +13,9 @@ selected - is the part of the state, state.sideMenu.selected
 onClick - is a method which is dispatched in the onclick events. Defined in the container.
 */
 let itemCounter = 0;
-let sideItems = sideMenuItems.map((sideItem)=>(<SideMenuItemName key={itemCounter} selected={selected} onClick={onClick} {...sideItem} keyVal={itemCounter++}/>));
+let sideItems = sideMenuItems.map((sideItem)=>(<SideMenuItemName key={itemCounter} selected={selected} onClick={onClick} onAdd={onAdd} {...sideItem} keyVal={itemCounter++}/>));
   
+
   return(
         <nav className="h-nav">
           <div className="header">
@@ -36,7 +37,7 @@ let sideItems = sideMenuItems.map((sideItem)=>(<SideMenuItemName key={itemCounte
 }	
 
 
-const SideMenuItemName = ({name,subItems,keyVal,selected,onClick}) => {
+const SideMenuItemName = ({name,subItems,icon,keyVal,selected,onClick,addNew,onAdd}) => {
   /*
    Component for a single menu of the side menu.
    This component can either be a single menu or a colapsable with submenues(SideMenuSubItems)
@@ -49,19 +50,19 @@ const SideMenuItemName = ({name,subItems,keyVal,selected,onClick}) => {
   return ( 
         
         
-          subItems.length > 0?(
+          (subItems.length > 0 || addNew !== undefined)?(
           <article key={keyVal}>
           <li className={"main-item "+ active } data-toggle="collapse" data-target={"#item"+keyVal}>
-            <a className="item-text"><i className="fa fa-dashboard fa-lg"></i> {name}</a> <span className="arrow"></span>
+            <a className="item-text"><i className={"fa fa-"+icon+" fa-lg"}></i> {name}</a> <span className="arrow"></span>
             
           </li>
 
-         <SideMenuSubItems name={name} subItems={subItems} subItem={selected.name===name?selected.subItem:-1} keyVal={keyVal} onClick={onClick}/>
+         <SideMenuSubItems name={name} subItems={subItems} subItem={selected.name===name?selected.subItem:-1} keyVal={keyVal} onClick={onClick} addNew={addNew} onAdd={onAdd}/>
           </article>)
          :
          (<article>
          <li className={"main-item "+ active} onClick={()=>{onClick({name:name})}}>
-               <a className="item-text"><i className="fa fa-user fa-lg"></i> {name}</a>
+               <a className="item-text"><i className={"fa fa-"+icon+" fa-lg"}></i> {name}</a>
          </li>
         </article>)
 
@@ -71,7 +72,7 @@ const SideMenuItemName = ({name,subItems,keyVal,selected,onClick}) => {
             );
 }
 
-const SideMenuSubItems = ({name,subItems,keyVal,subItem,onClick}) => {
+const SideMenuSubItems = ({name,subItems,keyVal,subItem,onClick,addNew,onAdd}) => {
   /*
   Component for the subitems for a menu item.
   Props are:
@@ -94,14 +95,31 @@ const SideMenuSubItems = ({name,subItems,keyVal,subItem,onClick}) => {
                     <a className="item-text">{v.title}</a>
           </li>
       )});
+    if(addNew !== undefined){
+      // add the add new button
+      items.push( 
+           (function(){
+              let active = '';
+              if(subItem === "new"){
+                  active ="active";
+               }
+               return(
+              <li className={"sub-item new "+active} key={keyVal + '-'+items.length}  onClick={()=>{
+                  onAdd({name:name,
+                        subItem:"new"
+                  })}}>
+                    <a className="item-text">{addNew.title}</a>
+              </li>);
+        })());
+    }
     if(items.length > 0){
       return(
-        <ul id={"item"+keyVal} className={"sub-items collapse "+(subItem>-1?"in":"")} >
+        <ul id={"item"+keyVal} className={"sub-items collapse "+((subItem==="new" || subItem>-1)?"in":"")} >
             {items}
          </ul>
         );
     }
-    return null;
+    return (null);
 
 }
 

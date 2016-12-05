@@ -63,11 +63,14 @@
     <script>
       // get the initial state here
       var __INITIAL_DATA__ = {
-        sideMenu: {sideMenuItems: [{name:"Overview",subItems:[]},
-                                  {name:"Dashboards",subItems:JSON.parse("{{dashboards}}".replace(/&quot;/g,'"'))  },
-                                  {name:"Profile",subItems:[]}
+        sideMenu: {
+                   sideMenuItems: [{name:"Overview",subItems:[],icon:"home"},
+                                   {name:"Dashboards",subItems:JSON.parse("{{dashboards}}".replace(/&quot;/g,'"')),icon:"dashboard",
+                                       addNew:{title:"New Dashboard"}  },
+                                   {name:"Datasets",subItems:[{title:"testdata"}],icon:"server",addNew:{title:"New Dataset"}},
+                                   {name:"Profile",subItems:[],icon:"user"}
                                  ],
-                  selected: {name:"Overview"}
+                   selected: {name:"Overview"}
                 },
         mainFrame:{
                isFetching: false,

@@ -52,6 +52,7 @@ export const sideMenu = (state,action) => {
     		/*
     		No need to deal with sideMenuItems, only update the selected property
     		*/
+       
     		return Object.assign({},state,
     			{selected:action.selected});
     	}

@@ -195,6 +195,12 @@ Styles for the sidebar manu
   vertical-align: middle;
 
      }
+.h-nav>.section>.items>article>.sub-items>.sub-item.new:before{
+       font-family: FontAwesome;
+  content: "\f067";
+ 
+
+     }
 
       .h-nav>.section>.items>article>.sub-items>.sub-item{
        background-color: #181c20;
