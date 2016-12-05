@@ -26,7 +26,7 @@ class ChartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Chart
-        fields = ('cell_type','id','title','xlabel','ylabel','figures')
+        fields = ('cell_type','id','title','xlabel','ylabel','chart_type','figures')
 
 
 class FigureSerializer(serializers.ModelSerializer):

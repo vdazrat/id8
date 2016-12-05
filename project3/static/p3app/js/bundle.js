@@ -63,20 +63,45 @@
 	
 	var _SideMenuContainer2 = _interopRequireDefault(_SideMenuContainer);
 	
-	var _reducers = __webpack_require__(/*! ./reducers */ 226);
+	var _MainFrameContainer = __webpack_require__(/*! ./containers/MainFrameContainer */ 226);
+	
+	var _MainFrameContainer2 = _interopRequireDefault(_MainFrameContainer);
+	
+	var _reducers = __webpack_require__(/*! ./reducers */ 230);
+	
+	var _MainFrameComponent = __webpack_require__(/*! ./components/MainFrameComponent */ 227);
+	
+	var _MainFrameComponent2 = _interopRequireDefault(_MainFrameComponent);
+	
+	var _reduxThunk = __webpack_require__(/*! redux-thunk */ 231);
+	
+	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
+	
+	var _reduxLogger = __webpack_require__(/*! redux-logger */ 232);
+	
+	var _reduxLogger2 = _interopRequireDefault(_reduxLogger);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var store = (0, _redux.createStore)(_reducers.mainReducer);
+	var loggerMiddleware = (0, _reduxLogger2.default)();
+	
+	var store = (0, _redux.createStore)(_reducers.mainReducer, (0, _redux.applyMiddleware)(_reduxThunk2.default, // lets us dispatch() functions
+	loggerMiddleware // neat middleware that logs actions
+	));
 	// just to test functions, remove later.
 	window.mainReducer = _reducers.mainReducer;
 	window.store = store;
 	
 	(0, _reactDom.render)(_react2.default.createElement(
-	  _reactRedux.Provider,
-	  { store: store },
-	  _react2.default.createElement(_SideMenuContainer2.default, null)
+	    _reactRedux.Provider,
+	    { store: store },
+	    _react2.default.createElement(_SideMenuContainer2.default, null)
 	), document.getElementById('sidemenu'));
+	(0, _reactDom.render)(_react2.default.createElement(
+	    _reactRedux.Provider,
+	    { store: store },
+	    _react2.default.createElement(_MainFrameContainer2.default, null)
+	), document.getElementById('mainframe'));
 
 /***/ },
 /* 1 */
@@ -24498,6 +24523,11 @@
 	/*
 	mapStateToProps
 	*/
+	/*
+	SideMenuContainer for the sidemenu
+	This is a container as it fetches the data from the server and maps the state to the props
+	*/
+	
 	var mapStateToProps = function mapStateToProps(state) {
 		var items = [];
 		if (Object.keys(state.sideMenu).length !== 0) {
@@ -24507,15 +24537,12 @@
 			sideMenuItems: items,
 			selected: state.sideMenu.selected
 		};
-	}; /*
-	   SideMenuContainer for the sidemenu
-	   This is a container as it fetches the data from the server and maps the state to the props
-	   */
+	};
 	
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 		return {
 			onClick: function onClick(data) {
-				dispatch((0, _actions.clickSideMenuItem)(data));
+				dispatch((0, _actions.sideMenuClick)(data));
 			}
 		};
 	};
@@ -24662,12 +24689,14 @@
 	    return _react2.default.createElement(
 	      "li",
 	      { className: "sub-item " + active, key: keyVal + '-' + i, onClick: function onClick() {
-	          _onClick2({ name: name, subItem: i });
+	          _onClick2({ name: name,
+	            subItem: i,
+	            api: v.api });
 	        } },
 	      _react2.default.createElement(
 	        "a",
 	        { className: "item-text" },
-	        v
+	        v.title
 	      )
 	    );
 	  });
@@ -24695,6 +24724,9 @@
 	Object.defineProperty(exports, "__esModule", {
 		value: true
 	});
+	exports.sideMenuClick = sideMenuClick;
+	exports.fetchDashBoard = fetchDashBoard;
+	exports.fetchCell = fetchCell;
 	/*
 	Contains all the actions and action creators
 	An action creator is a pure funcion that accepts a data and
@@ -24719,12 +24751,534 @@
 		if (data.hasOwnProperty('subItem')) {
 			selected.subItem = data.subItem;
 		}
-		return Object.assign({}, {
-			selected: selected }, { type: "CLICK_SIDEMENU_ITEM" });
+		return {
+			selected: selected,
+			type: "CLICK_SIDEMENU_ITEM" };
 	};
+	/*
+	CHANGE_FRAME action creator
+	where data = {
+		displaying:"dashboards",
+		data:{
+		  ....
+		}
+	}
+	*/
+	
+	/*
+	Lets create a thunk, for dispatching multiple actions when a sidemenu is clicked
+	*/
+	function sideMenuClick(data) {
+		// this will be appropriately dispatched by the thunk middleware
+	
+		return function (dispatch) {
+	
+			// dispatch the clicksidemenuItem action
+			dispatch(clickSideMenuItem(data));
+	
+			// depending on which item was clicked, dispatch the appropriate action
+	
+			// dispatch fetching of dashboard data
+			if (data.name === "Dashboards") {
+				dispatch(fetchDashBoard({
+					displaying: data.name,
+					api: data.api
+				}));
+			}
+			// dispatch fetching of the overview 
+			if (data.name === "Overview") {
+				dispatch(fetchOverview());
+			}
+		};
+	}
+	
+	/*
+	Dashboard action creators
+	*/
+	
+	var FETCH_DASHBOARD_REQUEST = exports.FETCH_DASHBOARD_REQUEST = 'FETCH_DASHBOARD_REQUEST';
+	var FETCH_DASHBOARD_SUCCESS = exports.FETCH_DASHBOARD_SUCCESS = 'FETCH_DASHBOARD_SUCCESS';
+	var FETCH_DASHBOARD_FAIL = exports.FETCH_DASHBOARD_FAIL = 'FETCH_DASHBOARD_FAIL';
+	
+	var requestDashBoard = function requestDashBoard(data) {
+		return Object.assign({}, { type: FETCH_DASHBOARD_REQUEST,
+			displaying: 'Dashboards',
+			api: data.api });
+	};
+	var successDashBoard = function successDashBoard(data) {
+		return Object.assign({}, { type: FETCH_DASHBOARD_SUCCESS,
+			displaying: 'Dashboards',
+			data: Object.assign({}, data)
+		});
+	};
+	
+	function recieveDashBoard(json) {
+		if (json.id) {
+			// the cells in json.cells are apis which need to be resolved later.
+			// reformat them
+			return function (dispatch) {
+				var cells = json.cells.map(function (cell) {
+					return {
+						isFetching: true,
+						api: cell
+					};
+				});
+	
+				var data = Object.assign({}, json, { cells: cells });
+	
+				dispatch(successDashBoard(data));
+				// need to dispatch fetchCell for all the cells.
+				cells.map(function (cell) {
+					dispatch(fetchCell(cell));
+				});
+			};
+		}
+		return Object.assign({}, { type: FETCH_DASHBOARD_FAIL,
+			displaying: 'Dashboards'
+		});
+	}
+	
+	// fetchDashBoard is where the data is fetched
+	function fetchDashBoard(data) {
+	
+		return function (dispatch) {
+			//first dispatch requestDashBoard 
+			dispatch(requestDashBoard(data));
+	
+			// Next fetch the data from the api
+	
+			// return the promise object
+			/*
+	  return fetch(data.api+"?format=json")
+	           .then((response) => {
+	           	console.log(response.json());
+	           	return response.json()})
+	           .then((json) => (
+	                   dispatch(recieveDashBoard(json))
+	           	));
+	    */
+			$.get(data.api, function (json) {
+				dispatch(recieveDashBoard(json));
+			});
+		};
+	}
+	
+	/*
+	Overview action creators
+	*/
+	
+	var FETCH_OVERVIEW = exports.FETCH_OVERVIEW = 'FETCH_OVERVIEW';
+	var fetchOverview = exports.fetchOverview = function fetchOverview(data) {
+	
+		return { type: FETCH_OVERVIEW,
+			displaying: 'Overview' };
+	};
+	
+	/*
+	Cell action creators 
+	*/
+	var FETCH_CELL_REQUEST = exports.FETCH_CELL_REQUEST = 'FETCH_CELL_REQUEST';
+	var FETCH_CELL_SUCCESS = exports.FETCH_CELL_SUCCESS = 'FETCH_CELL_SUCCESS';
+	var FETCH_CELL_FAIL = exports.FETCH_CELL_FAIL = 'FETCH_CELL_FAIL';
+	
+	var requestCell = exports.requestCell = function requestCell(data) {
+		return Object.assign({}, { type: FETCH_CELL_REQUEST,
+			api: data.api });
+	};
+	var recieveCell = function recieveCell(json) {
+		if (json.id) {
+			return {
+				type: FETCH_CELL_SUCCESS,
+				payload: Object.assign({}, json.payload),
+				api: json.api
+			};
+		} else {
+	
+			return {
+				type: FETCH_CELL_FAIL
+			};
+		}
+	};
+	function fetchCell(data) {
+	
+		return function (dispatch) {
+			dispatch(requestCell(data));
+	
+			$.get(data.api + "?format=json", function (json) {
+				dispatch(recieveCell(Object.assign({}, json, { api: data.api })));
+			});
+		};
+	}
 
 /***/ },
 /* 226 */
+/*!**********************************************!*\
+  !*** ./src/containers/MainFrameContainer.js ***!
+  \**********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _reactRedux = __webpack_require__(/*! react-redux */ 204);
+	
+	var _actions = __webpack_require__(/*! ../actions */ 225);
+	
+	var _MainFrameComponent = __webpack_require__(/*! ../components/MainFrameComponent */ 227);
+	
+	var _MainFrameComponent2 = _interopRequireDefault(_MainFrameComponent);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var mapStateToProps = function mapStateToProps(state) {
+	
+	    return {
+	        mainFrame: state.mainFrame
+	    };
+	}; /*
+	   MainFrameContainer 
+	   This is a container as it fetches the data from the server and maps the state to the props
+	   */
+	
+	var MainFrameContainer = (0, _reactRedux.connect)(mapStateToProps)(_MainFrameComponent2.default);
+	
+	exports.default = MainFrameContainer;
+
+/***/ },
+/* 227 */
+/*!**********************************************!*\
+  !*** ./src/components/MainFrameComponent.js ***!
+  \**********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; /*
+	                                                                                                                                                                                                                                                                  Component for mainFrame 
+	                                                                                                                                                                                                                                                                  Components need to be pure functions, implement the same as one
+	                                                                                                                                                                                                                                                                  */
+	
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _CellComponent = __webpack_require__(/*! ./CellComponent */ 228);
+	
+	var _CellComponent2 = _interopRequireDefault(_CellComponent);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	/*
+	MainFrameComponent,
+	accepts the mainFrame prop and generates the main frame
+	mainFrame is defined as folows:
+	mainFrame:{
+		displaying:"dashboards",
+		data:{
+		    title:"title name",
+		    cells: [...]
+		}
+	}
+	*/
+	var MainFrameComponent = function MainFrameComponent(_ref) {
+	    var mainFrame = _ref.mainFrame;
+	
+	    switch (mainFrame.displaying) {
+	
+	        case "Dashboards":
+	            {
+	                // check if dashboards is still being fetched
+	                if (mainFrame.isFetching) {
+	                    return _react2.default.createElement(
+	                        'div',
+	                        null,
+	                        'Fetching...'
+	                    );
+	                }
+	                return _react2.default.createElement(DashBoardViewComponent, { data: mainFrame.data });
+	            }
+	        case "overview":
+	            {
+	                return _react2.default.createElement('div', null);
+	            }
+	        default:
+	            return _react2.default.createElement('div', null);
+	    }
+	};
+	
+	var DashBoardViewComponent = function DashBoardViewComponent(_ref2) {
+	    var data = _ref2.data;
+	
+	    // Get the data.cells
+	    var cells = data.cells.map(function (cell, i) {
+	        return _react2.default.createElement(_CellComponent2.default, _extends({ key: "cell-" + i, cellKey: "cell-" + i }, cell));
+	    });
+	    return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement(
+	            'div',
+	            { className: 'page-header' },
+	            _react2.default.createElement(
+	                'h1',
+	                null,
+	                data.title
+	            )
+	        ),
+	        cells
+	    );
+	};
+	
+	exports.default = MainFrameComponent;
+
+/***/ },
+/* 228 */
+/*!*****************************************!*\
+  !*** ./src/components/CellComponent.js ***!
+  \*****************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _p3toc = __webpack_require__(/*! ../p3toc3 */ 229);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               CellComponent
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               is a component that renders a cell from the state branch state.mainFrame.data.cells
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               cells is defined as a list of shape:
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                cells:[
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {             ///  -->this is a Cell
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          isFetching:false,
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          isInvalidated:false,
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          api:'http://..'
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          payload:{
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             cell_type:'TextData',
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ...
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          }
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        },..
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ]
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               */
+	
+	
+	var CellComponent = function CellComponent(_ref) {
+	    var isFetching = _ref.isFetching,
+	        isInvalidated = _ref.isInvalidated,
+	        api = _ref.api,
+	        payload = _ref.payload,
+	        cellKey = _ref.cellKey;
+	
+	
+	    if (isFetching) {
+	        return _react2.default.createElement(CellLoading, null);
+	    } else {
+	        switch (payload.cell_type) {
+	            case "TextData":
+	                {
+	                    return _react2.default.createElement(CellTextData, { data: payload });
+	                }
+	            case "Chart":
+	                {
+	                    return _react2.default.createElement(CellChart, { cellKey: cellKey, data: payload });
+	                }
+	            default:
+	                return _react2.default.createElement('div', null);
+	        }
+	    }
+	};
+	
+	var CellLoading = function CellLoading() {
+	    return _react2.default.createElement(
+	        'div',
+	        { className: 'alert alert-info' },
+	        'loading cell...'
+	    );
+	};
+	
+	var CellTextData = function CellTextData(_ref2) {
+	    var data = _ref2.data;
+	    return _react2.default.createElement(
+	        'div',
+	        { className: 'well' },
+	        _react2.default.createElement(
+	            'p',
+	            null,
+	            data.description
+	        )
+	    );
+	};
+	
+	var CellChart = function (_React$Component) {
+	    _inherits(CellChart, _React$Component);
+	
+	    function CellChart() {
+	        _classCallCheck(this, CellChart);
+	
+	        return _possibleConstructorReturn(this, (CellChart.__proto__ || Object.getPrototypeOf(CellChart)).apply(this, arguments));
+	    }
+	
+	    _createClass(CellChart, [{
+	        key: 'componentDidMount',
+	
+	        /*
+	        This is the where the chart data in a cell is displayed.
+	        This is not a pure function as it needs to call a c3 method as well.
+	        Props recieved by this component is data
+	        data = {
+	        cell_type:'Chart',
+	          "id": 1,
+	          "title": "Simple Chart",
+	          "xlabel": "x axis",
+	          "ylabel": "yaxis",
+	          chart_type:"pie",
+	          "figures": [
+	              {
+	                  "id": 1,
+	                  "dataframe": "{\"bug\":{\"0\":joe,\"1\":joe,\"2\":moe,\"3\":moe,\"4\":curly,\"5\":joe,\"6\":john,\"7\":bon,\"8\":bon,\"9\":hon}}"
+	                
+	              }
+	          ]
+	         }
+	        */
+	        value: function componentDidMount() {
+	            var data = this.props.data;
+	
+	            var c3Data = getC3Data(data);
+	            window.c3Data = c3Data;
+	            var bindId = "#chart-" + this.props.cellKey;
+	
+	            c3.generate({ bindto: bindId,
+	                data: c3Data,
+	                legend: {
+	                    position: 'right'
+	                }
+	
+	            });
+	            /*
+	             c3.generate({
+	            data: {
+	            // iris data from R
+	            bindto:"#chart-cell-1",
+	            columns: [
+	                ['data1', 30],
+	                ['data2', 120],
+	            ],
+	            type : 'pie'}});
+	            */
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            return _react2.default.createElement(
+	                'div',
+	                { className: 'graph-panel' },
+	                _react2.default.createElement(
+	                    'h4',
+	                    { style: { textAlign: 'center', paddingTop: "15px" } },
+	                    this.props.data.title
+	                ),
+	                _react2.default.createElement('div', { id: "chart-" + this.props.cellKey })
+	            );
+	        }
+	    }]);
+	
+	    return CellChart;
+	}(_react2.default.Component);
+	
+	var getC3Data = function getC3Data(data) {
+	    var c3data = {};
+	    // handling just one figure for now
+	    switch (data.chart_type) {
+	
+	        case 'pie':
+	            {
+	
+	                return Object.assign({}, {
+	                    columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
+	                }, { type: 'pie' });
+	            }
+	    }
+	};
+	
+	exports.default = CellComponent;
+
+/***/ },
+/* 229 */
+/*!***********************!*\
+  !*** ./src/p3toc3.js ***!
+  \***********************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+					value: true
+	});
+	/*
+	Module to convert data from p3 to c3 usable format
+	*/
+	
+	var makeHistogram = function makeHistogram(list) {
+	
+					var i = void 0;
+					var obj = {};
+					for (i = 0; i < list.length; i++) {
+									if (!obj.hasOwnProperty(list[i])) {
+													obj[list[i]] = 1;
+									} else {
+													obj[list[i]] += 1;
+									}
+					}
+	
+					return obj;
+	};
+	
+	var makeC3Hist = exports.makeC3Hist = function makeC3Hist(series) {
+	
+					var key = Object.keys(series)[0];
+					var hist = makeHistogram(objToArr(series[key]));
+					var columns = [];
+					for (var k in hist) {
+									if (hist.hasOwnProperty(k)) {
+													var column = [k, hist[k]];
+													columns.push(column);
+									}
+					}
+					return columns;
+	};
+	
+	var objToArr = exports.objToArr = function objToArr(arrayLike) {
+					var keys = Object.keys(arrayLike);
+					return keys.map(function (i) {
+									return arrayLike[i];
+					});
+	};
+
+/***/ },
+/* 230 */
 /*!*******************************!*\
   !*** ./src/reducers/index.js ***!
   \*******************************/
@@ -24733,11 +25287,13 @@
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	    value: true
 	});
 	exports.mainReducer = exports.sideMenu = undefined;
 	
 	var _redux = __webpack_require__(/*! redux */ 183);
+	
+	var _actions = __webpack_require__(/*! ../actions */ 225);
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } /*
 	                                                                                                                                                                                                    Module that contains all the reducers for the app.
@@ -24770,44 +25326,161 @@
 	}
 	*/
 	var sideMenu = exports.sideMenu = function sideMenu(state, action) {
-	  if (typeof state === 'undefined') {
-	    return { sideMenuItems: initialState.sideMenu.sideMenuItems,
-	      selected: initialState.sideMenu.selected };
-	  }
-	  switch (action.type) {
+	    if (typeof state === 'undefined') {
+	        return { sideMenuItems: initialState.sideMenu.sideMenuItems,
+	            selected: initialState.sideMenu.selected };
+	    }
+	    switch (action.type) {
 	
-	    case "ADD_MENU_ITEM":
-	      {
-	        return Object.assign({}, state, { sideMenuItems: sideMenuItems(state.sideMenuItems, action),
-	          selected: state.selected });
-	      }
-	    case "CLICK_SIDEMENU_ITEM":
-	      {
-	        /*
-	        No need to deal with sideMenuItems, only update the selected property
-	        */
-	        return Object.assign({}, state, { selected: action.selected });
-	      }
-	    default:
-	      return state;
-	  }
+	        case "ADD_MENU_ITEM":
+	            {
+	                return Object.assign({}, state, { sideMenuItems: sideMenuItems(state.sideMenuItems, action),
+	                    selected: state.selected });
+	            }
+	        case "CLICK_SIDEMENU_ITEM":
+	            {
+	                /*
+	                No need to deal with sideMenuItems, only update the selected property
+	                */
+	                return Object.assign({}, state, { selected: action.selected });
+	            }
+	        default:
+	            return state;
+	    }
 	};
 	
 	var sideMenuItems = function sideMenuItems(state, action) {
-	  if (typeof state === 'undefined') {
-	    return [];
-	  }
-	  switch (action.type) {
-	    case "ADD_MENU_ITEM":
-	      {
-	        return [].concat(_toConsumableArray(state), [{
-	          name: action.name,
-	          subItems: action.subItems
-	        }]);
-	      }
-	    default:
-	      return state;
-	  }
+	    if (typeof state === 'undefined') {
+	        return [];
+	    }
+	    switch (action.type) {
+	        case "ADD_MENU_ITEM":
+	            {
+	                return [].concat(_toConsumableArray(state), [{
+	                    name: action.name,
+	                    subItems: action.subItems
+	                }]);
+	            }
+	        default:
+	            return state;
+	    }
+	};
+	
+	/*
+	mainFrame reducer:
+	This reduces the central display area.
+	The state is as folows:
+	
+	mainFrame = {
+	    displaying: "dashboards",
+	    data: {
+	        title:"CPM",
+	        cells:[
+	         {
+	           isFetching:false,
+	           isInvalidated:false,
+	           api:'http://..'
+	           payload:{
+	              cell_type:'TextData',
+	              ...
+	           }
+	         },
+	         {
+	            isFetching:True,
+	            isInvalidated:false,
+	            api:'http://..',
+	            payload:{}
+	
+	         }
+	        ]
+	    }
+	}
+	*/
+	
+	var mainFrame = function mainFrame(state, action) {
+	    if (typeof state === 'undefined') {
+	        return initialState.mainFrame;
+	    }
+	    switch (action.type) {
+	
+	        case _actions.FETCH_DASHBOARD_REQUEST:
+	            {
+	                return Object.assign({}, { displaying: action.displaying }, { isFetching: true });
+	            }
+	        case _actions.FETCH_DASHBOARD_SUCCESS:
+	            {
+	                console.log(action);
+	                return Object.assign({}, { displaying: action.displaying,
+	                    data: action.data }, { isFetching: false });
+	            }
+	
+	        case _actions.FETCH_CELL_REQUEST:
+	        case _actions.FETCH_CELL_SUCCESS:
+	            {
+	                return Object.assign({}, state, { data: Object.assign({}, state.data, { cells: cells(state.data.cells, action) })
+	                });
+	            }
+	
+	        case _actions.FETCH_OVERVIEW:
+	            {
+	                return Object.assign({}, { displaying: action.displaying }, { isFetching: false });
+	            }
+	
+	        default:
+	            return state;
+	
+	    }
+	};
+	
+	/*
+	cells reducer,
+	for mainFrame.data.cells
+	cells = {
+	    isFetching: true,
+	    payload:{}
+	}
+	*/
+	
+	var cells = function cells() {
+	    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+	    var action = arguments[1];
+	
+	    switch (action.type) {
+	
+	        case _actions.FETCH_CELL_REQUEST:
+	        case _actions.FETCH_CELL_SUCCESS:
+	            {
+	                return state.map(function (c) {
+	                    return cell(c, action);
+	                });
+	            }
+	        default:
+	            return state;
+	    }
+	};
+	
+	var cell = function cell(state, action) {
+	    if (action.api !== state.api) {
+	        // only respond your own cell
+	        return state;
+	    }
+	
+	    switch (action.type) {
+	
+	        case _actions.FETCH_CELL_REQUEST:
+	            {
+	                return { isFetching: true,
+	                    api: action.api };
+	            }
+	        case _actions.FETCH_CELL_SUCCESS:
+	            {
+	                return { isFetching: false,
+	                    api: action.api,
+	                    payload: action.payload };
+	            }
+	        default:
+	            return state;
+	    }
 	};
 	
 	/*
@@ -24823,13 +25496,922 @@
 	*/
 	
 	var mainReducer = exports.mainReducer = function mainReducer(state, action) {
-	  if (typeof state === 'undefined') {
-	    return initialState;
-	  }
-	  return {
-	    sideMenu: sideMenu(state.sideMenu, action)
-	  };
+	    if (typeof state === 'undefined') {
+	        return initialState;
+	    }
+	    return {
+	        sideMenu: sideMenu(state.sideMenu, action),
+	        mainFrame: mainFrame(state.mainFrame, action)
+	    };
 	};
+
+/***/ },
+/* 231 */
+/*!************************************!*\
+  !*** ./~/redux-thunk/lib/index.js ***!
+  \************************************/
+/***/ function(module, exports) {
+
+	'use strict';
+	
+	exports.__esModule = true;
+	function createThunkMiddleware(extraArgument) {
+	  return function (_ref) {
+	    var dispatch = _ref.dispatch;
+	    var getState = _ref.getState;
+	    return function (next) {
+	      return function (action) {
+	        if (typeof action === 'function') {
+	          return action(dispatch, getState, extraArgument);
+	        }
+	
+	        return next(action);
+	      };
+	    };
+	  };
+	}
+	
+	var thunk = createThunkMiddleware();
+	thunk.withExtraArgument = createThunkMiddleware;
+	
+	exports['default'] = thunk;
+
+/***/ },
+/* 232 */
+/*!*************************************!*\
+  !*** ./~/redux-logger/lib/index.js ***!
+  \*************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _core = __webpack_require__(/*! ./core */ 233);
+	
+	var _helpers = __webpack_require__(/*! ./helpers */ 234);
+	
+	var _defaults = __webpack_require__(/*! ./defaults */ 237);
+	
+	var _defaults2 = _interopRequireDefault(_defaults);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	/**
+	 * Creates logger with following options
+	 *
+	 * @namespace
+	 * @param {object} options - options for logger
+	 * @param {string | function | object} options.level - console[level]
+	 * @param {boolean} options.duration - print duration of each action?
+	 * @param {boolean} options.timestamp - print timestamp with each action?
+	 * @param {object} options.colors - custom colors
+	 * @param {object} options.logger - implementation of the `console` API
+	 * @param {boolean} options.logErrors - should errors in action execution be caught, logged, and re-thrown?
+	 * @param {boolean} options.collapsed - is group collapsed?
+	 * @param {boolean} options.predicate - condition which resolves logger behavior
+	 * @param {function} options.stateTransformer - transform state before print
+	 * @param {function} options.actionTransformer - transform action before print
+	 * @param {function} options.errorTransformer - transform error before print
+	 *
+	 * @returns {function} logger middleware
+	 */
+	function createLogger() {
+	  var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	
+	  var loggerOptions = _extends({}, _defaults2.default, options);
+	
+	  var logger = loggerOptions.logger;
+	  var transformer = loggerOptions.transformer;
+	  var stateTransformer = loggerOptions.stateTransformer;
+	  var errorTransformer = loggerOptions.errorTransformer;
+	  var predicate = loggerOptions.predicate;
+	  var logErrors = loggerOptions.logErrors;
+	  var diffPredicate = loggerOptions.diffPredicate;
+	
+	  // Return if 'console' object is not defined
+	
+	  if (typeof logger === 'undefined') {
+	    return function () {
+	      return function (next) {
+	        return function (action) {
+	          return next(action);
+	        };
+	      };
+	    };
+	  }
+	
+	  if (transformer) {
+	    console.error('Option \'transformer\' is deprecated, use \'stateTransformer\' instead!'); // eslint-disable-line no-console
+	  }
+	
+	  var logBuffer = [];
+	
+	  return function (_ref) {
+	    var getState = _ref.getState;
+	    return function (next) {
+	      return function (action) {
+	        // Exit early if predicate function returns 'false'
+	        if (typeof predicate === 'function' && !predicate(getState, action)) {
+	          return next(action);
+	        }
+	
+	        var logEntry = {};
+	        logBuffer.push(logEntry);
+	
+	        logEntry.started = _helpers.timer.now();
+	        logEntry.startedTime = new Date();
+	        logEntry.prevState = stateTransformer(getState());
+	        logEntry.action = action;
+	
+	        var returnedValue = undefined;
+	        if (logErrors) {
+	          try {
+	            returnedValue = next(action);
+	          } catch (e) {
+	            logEntry.error = errorTransformer(e);
+	          }
+	        } else {
+	          returnedValue = next(action);
+	        }
+	
+	        logEntry.took = _helpers.timer.now() - logEntry.started;
+	        logEntry.nextState = stateTransformer(getState());
+	
+	        var diff = loggerOptions.diff && typeof diffPredicate === 'function' ? diffPredicate(getState, action) : loggerOptions.diff;
+	
+	        (0, _core.printBuffer)(logBuffer, _extends({}, loggerOptions, { diff: diff }));
+	        logBuffer.length = 0;
+	
+	        if (logEntry.error) throw logEntry.error;
+	        return returnedValue;
+	      };
+	    };
+	  };
+	}
+	
+	exports.default = createLogger;
+	module.exports = exports['default'];
+
+/***/ },
+/* 233 */
+/*!************************************!*\
+  !*** ./~/redux-logger/lib/core.js ***!
+  \************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.printBuffer = printBuffer;
+	
+	var _helpers = __webpack_require__(/*! ./helpers */ 234);
+	
+	var _diff = __webpack_require__(/*! ./diff */ 235);
+	
+	var _diff2 = _interopRequireDefault(_diff);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+	
+	function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+	
+	/**
+	 * Get log level string based on supplied params
+	 *
+	 * @param {string | function | object} level - console[level]
+	 * @param {object} action - selected action
+	 * @param {array} payload - selected payload
+	 * @param {string} type - log entry type
+	 *
+	 * @returns {string} level
+	 */
+	function getLogLevel(level, action, payload, type) {
+	  switch (typeof level === 'undefined' ? 'undefined' : _typeof(level)) {
+	    case 'object':
+	      return typeof level[type] === 'function' ? level[type].apply(level, _toConsumableArray(payload)) : level[type];
+	    case 'function':
+	      return level(action);
+	    default:
+	      return level;
+	  }
+	}
+	
+	function defaultTitleFormatter(options) {
+	  var timestamp = options.timestamp;
+	  var duration = options.duration;
+	
+	  return function (action, time, took) {
+	    var parts = ['action'];
+	    if (timestamp) {
+	      parts.push('@ ' + time);
+	    }
+	    parts.push(action.type);
+	    if (duration) {
+	      parts.push('(in ' + took.toFixed(2) + ' ms)');
+	    }
+	    return parts.join(' ');
+	  };
+	}
+	
+	function printBuffer(buffer, options) {
+	  var logger = options.logger;
+	  var actionTransformer = options.actionTransformer;
+	  var _options$titleFormatt = options.titleFormatter;
+	  var titleFormatter = _options$titleFormatt === undefined ? defaultTitleFormatter(options) : _options$titleFormatt;
+	  var collapsed = options.collapsed;
+	  var colors = options.colors;
+	  var level = options.level;
+	  var diff = options.diff;
+	
+	  buffer.forEach(function (logEntry, key) {
+	    var started = logEntry.started;
+	    var startedTime = logEntry.startedTime;
+	    var action = logEntry.action;
+	    var prevState = logEntry.prevState;
+	    var error = logEntry.error;
+	    var took = logEntry.took;
+	    var nextState = logEntry.nextState;
+	
+	    var nextEntry = buffer[key + 1];
+	
+	    if (nextEntry) {
+	      nextState = nextEntry.prevState;
+	      took = nextEntry.started - started;
+	    }
+	
+	    // Message
+	    var formattedAction = actionTransformer(action);
+	    var isCollapsed = typeof collapsed === 'function' ? collapsed(function () {
+	      return nextState;
+	    }, action) : collapsed;
+	
+	    var formattedTime = (0, _helpers.formatTime)(startedTime);
+	    var titleCSS = colors.title ? 'color: ' + colors.title(formattedAction) + ';' : null;
+	    var title = titleFormatter(formattedAction, formattedTime, took);
+	
+	    // Render
+	    try {
+	      if (isCollapsed) {
+	        if (colors.title) logger.groupCollapsed('%c ' + title, titleCSS);else logger.groupCollapsed(title);
+	      } else {
+	        if (colors.title) logger.group('%c ' + title, titleCSS);else logger.group(title);
+	      }
+	    } catch (e) {
+	      logger.log(title);
+	    }
+	
+	    var prevStateLevel = getLogLevel(level, formattedAction, [prevState], 'prevState');
+	    var actionLevel = getLogLevel(level, formattedAction, [formattedAction], 'action');
+	    var errorLevel = getLogLevel(level, formattedAction, [error, prevState], 'error');
+	    var nextStateLevel = getLogLevel(level, formattedAction, [nextState], 'nextState');
+	
+	    if (prevStateLevel) {
+	      if (colors.prevState) logger[prevStateLevel]('%c prev state', 'color: ' + colors.prevState(prevState) + '; font-weight: bold', prevState);else logger[prevStateLevel]('prev state', prevState);
+	    }
+	
+	    if (actionLevel) {
+	      if (colors.action) logger[actionLevel]('%c action', 'color: ' + colors.action(formattedAction) + '; font-weight: bold', formattedAction);else logger[actionLevel]('action', formattedAction);
+	    }
+	
+	    if (error && errorLevel) {
+	      if (colors.error) logger[errorLevel]('%c error', 'color: ' + colors.error(error, prevState) + '; font-weight: bold', error);else logger[errorLevel]('error', error);
+	    }
+	
+	    if (nextStateLevel) {
+	      if (colors.nextState) logger[nextStateLevel]('%c next state', 'color: ' + colors.nextState(nextState) + '; font-weight: bold', nextState);else logger[nextStateLevel]('next state', nextState);
+	    }
+	
+	    if (diff) {
+	      (0, _diff2.default)(prevState, nextState, logger, isCollapsed);
+	    }
+	
+	    try {
+	      logger.groupEnd();
+	    } catch (e) {
+	      logger.log('—— log end ——');
+	    }
+	  });
+	}
+
+/***/ },
+/* 234 */
+/*!***************************************!*\
+  !*** ./~/redux-logger/lib/helpers.js ***!
+  \***************************************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var repeat = exports.repeat = function repeat(str, times) {
+	  return new Array(times + 1).join(str);
+	};
+	
+	var pad = exports.pad = function pad(num, maxLength) {
+	  return repeat("0", maxLength - num.toString().length) + num;
+	};
+	
+	var formatTime = exports.formatTime = function formatTime(time) {
+	  return pad(time.getHours(), 2) + ":" + pad(time.getMinutes(), 2) + ":" + pad(time.getSeconds(), 2) + "." + pad(time.getMilliseconds(), 3);
+	};
+	
+	// Use performance API if it's available in order to get better precision
+	var timer = exports.timer = typeof performance !== "undefined" && performance !== null && typeof performance.now === "function" ? performance : Date;
+
+/***/ },
+/* 235 */
+/*!************************************!*\
+  !*** ./~/redux-logger/lib/diff.js ***!
+  \************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = diffLogger;
+	
+	var _deepDiff = __webpack_require__(/*! deep-diff */ 236);
+	
+	var _deepDiff2 = _interopRequireDefault(_deepDiff);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	// https://github.com/flitbit/diff#differences
+	var dictionary = {
+	  'E': {
+	    color: '#2196F3',
+	    text: 'CHANGED:'
+	  },
+	  'N': {
+	    color: '#4CAF50',
+	    text: 'ADDED:'
+	  },
+	  'D': {
+	    color: '#F44336',
+	    text: 'DELETED:'
+	  },
+	  'A': {
+	    color: '#2196F3',
+	    text: 'ARRAY:'
+	  }
+	};
+	
+	function style(kind) {
+	  return 'color: ' + dictionary[kind].color + '; font-weight: bold';
+	}
+	
+	function render(diff) {
+	  var kind = diff.kind;
+	  var path = diff.path;
+	  var lhs = diff.lhs;
+	  var rhs = diff.rhs;
+	  var index = diff.index;
+	  var item = diff.item;
+	
+	  switch (kind) {
+	    case 'E':
+	      return path.join('.') + ' ' + lhs + ' → ' + rhs;
+	    case 'N':
+	      return path.join('.') + ' ' + rhs;
+	    case 'D':
+	      return '' + path.join('.');
+	    case 'A':
+	      return [path.join('.') + '[' + index + ']', item];
+	    default:
+	      return null;
+	  }
+	}
+	
+	function diffLogger(prevState, newState, logger, isCollapsed) {
+	  var diff = (0, _deepDiff2.default)(prevState, newState);
+	
+	  try {
+	    if (isCollapsed) {
+	      logger.groupCollapsed('diff');
+	    } else {
+	      logger.group('diff');
+	    }
+	  } catch (e) {
+	    logger.log('diff');
+	  }
+	
+	  if (diff) {
+	    diff.forEach(function (elem) {
+	      var kind = elem.kind;
+	
+	      var output = render(elem);
+	
+	      logger.log('%c ' + dictionary[kind].text, style(kind), output);
+	    });
+	  } else {
+	    logger.log('—— no diff ——');
+	  }
+	
+	  try {
+	    logger.groupEnd();
+	  } catch (e) {
+	    logger.log('—— diff end —— ');
+	  }
+	}
+	module.exports = exports['default'];
+
+/***/ },
+/* 236 */
+/*!*********************************************!*\
+  !*** ./~/redux-logger/~/deep-diff/index.js ***!
+  \*********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global) {/*!
+	 * deep-diff.
+	 * Licensed under the MIT License.
+	 */
+	;(function(root, factory) {
+	  'use strict';
+	  if (true) {
+	    // AMD. Register as an anonymous module.
+	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
+	      return factory();
+	    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	  } else if (typeof exports === 'object') {
+	    // Node. Does not work with strict CommonJS, but
+	    // only CommonJS-like environments that support module.exports,
+	    // like Node.
+	    module.exports = factory();
+	  } else {
+	    // Browser globals (root is window)
+	    root.DeepDiff = factory();
+	  }
+	}(this, function(undefined) {
+	  'use strict';
+	
+	  var $scope, conflict, conflictResolution = [];
+	  if (typeof global === 'object' && global) {
+	    $scope = global;
+	  } else if (typeof window !== 'undefined') {
+	    $scope = window;
+	  } else {
+	    $scope = {};
+	  }
+	  conflict = $scope.DeepDiff;
+	  if (conflict) {
+	    conflictResolution.push(
+	      function() {
+	        if ('undefined' !== typeof conflict && $scope.DeepDiff === accumulateDiff) {
+	          $scope.DeepDiff = conflict;
+	          conflict = undefined;
+	        }
+	      });
+	  }
+	
+	  // nodejs compatible on server side and in the browser.
+	  function inherits(ctor, superCtor) {
+	    ctor.super_ = superCtor;
+	    ctor.prototype = Object.create(superCtor.prototype, {
+	      constructor: {
+	        value: ctor,
+	        enumerable: false,
+	        writable: true,
+	        configurable: true
+	      }
+	    });
+	  }
+	
+	  function Diff(kind, path) {
+	    Object.defineProperty(this, 'kind', {
+	      value: kind,
+	      enumerable: true
+	    });
+	    if (path && path.length) {
+	      Object.defineProperty(this, 'path', {
+	        value: path,
+	        enumerable: true
+	      });
+	    }
+	  }
+	
+	  function DiffEdit(path, origin, value) {
+	    DiffEdit.super_.call(this, 'E', path);
+	    Object.defineProperty(this, 'lhs', {
+	      value: origin,
+	      enumerable: true
+	    });
+	    Object.defineProperty(this, 'rhs', {
+	      value: value,
+	      enumerable: true
+	    });
+	  }
+	  inherits(DiffEdit, Diff);
+	
+	  function DiffNew(path, value) {
+	    DiffNew.super_.call(this, 'N', path);
+	    Object.defineProperty(this, 'rhs', {
+	      value: value,
+	      enumerable: true
+	    });
+	  }
+	  inherits(DiffNew, Diff);
+	
+	  function DiffDeleted(path, value) {
+	    DiffDeleted.super_.call(this, 'D', path);
+	    Object.defineProperty(this, 'lhs', {
+	      value: value,
+	      enumerable: true
+	    });
+	  }
+	  inherits(DiffDeleted, Diff);
+	
+	  function DiffArray(path, index, item) {
+	    DiffArray.super_.call(this, 'A', path);
+	    Object.defineProperty(this, 'index', {
+	      value: index,
+	      enumerable: true
+	    });
+	    Object.defineProperty(this, 'item', {
+	      value: item,
+	      enumerable: true
+	    });
+	  }
+	  inherits(DiffArray, Diff);
+	
+	  function arrayRemove(arr, from, to) {
+	    var rest = arr.slice((to || from) + 1 || arr.length);
+	    arr.length = from < 0 ? arr.length + from : from;
+	    arr.push.apply(arr, rest);
+	    return arr;
+	  }
+	
+	  function realTypeOf(subject) {
+	    var type = typeof subject;
+	    if (type !== 'object') {
+	      return type;
+	    }
+	
+	    if (subject === Math) {
+	      return 'math';
+	    } else if (subject === null) {
+	      return 'null';
+	    } else if (Array.isArray(subject)) {
+	      return 'array';
+	    } else if (Object.prototype.toString.call(subject) === '[object Date]') {
+	      return 'date';
+	    } else if (typeof subject.toString !== 'undefined' && /^\/.*\//.test(subject.toString())) {
+	      return 'regexp';
+	    }
+	    return 'object';
+	  }
+	
+	  function deepDiff(lhs, rhs, changes, prefilter, path, key, stack) {
+	    path = path || [];
+	    var currentPath = path.slice(0);
+	    if (typeof key !== 'undefined') {
+	      if (prefilter) {
+	        if (typeof(prefilter) === 'function' && prefilter(currentPath, key)) { return; }
+	        else if (typeof(prefilter) === 'object') {
+	          if (prefilter.prefilter && prefilter.prefilter(currentPath, key)) { return; }
+	          if (prefilter.normalize) {
+	            var alt = prefilter.normalize(currentPath, key, lhs, rhs);
+	            if (alt) {
+	              lhs = alt[0];
+	              rhs = alt[1];
+	            }
+	          }
+	        }
+	      }
+	      currentPath.push(key);
+	    }
+	
+	    // Use string comparison for regexes
+	    if (realTypeOf(lhs) === 'regexp' && realTypeOf(rhs) === 'regexp') {
+	      lhs = lhs.toString();
+	      rhs = rhs.toString();
+	    }
+	
+	    var ltype = typeof lhs;
+	    var rtype = typeof rhs;
+	    if (ltype === 'undefined') {
+	      if (rtype !== 'undefined') {
+	        changes(new DiffNew(currentPath, rhs));
+	      }
+	    } else if (rtype === 'undefined') {
+	      changes(new DiffDeleted(currentPath, lhs));
+	    } else if (realTypeOf(lhs) !== realTypeOf(rhs)) {
+	      changes(new DiffEdit(currentPath, lhs, rhs));
+	    } else if (Object.prototype.toString.call(lhs) === '[object Date]' && Object.prototype.toString.call(rhs) === '[object Date]' && ((lhs - rhs) !== 0)) {
+	      changes(new DiffEdit(currentPath, lhs, rhs));
+	    } else if (ltype === 'object' && lhs !== null && rhs !== null) {
+	      stack = stack || [];
+	      if (stack.indexOf(lhs) < 0) {
+	        stack.push(lhs);
+	        if (Array.isArray(lhs)) {
+	          var i, len = lhs.length;
+	          for (i = 0; i < lhs.length; i++) {
+	            if (i >= rhs.length) {
+	              changes(new DiffArray(currentPath, i, new DiffDeleted(undefined, lhs[i])));
+	            } else {
+	              deepDiff(lhs[i], rhs[i], changes, prefilter, currentPath, i, stack);
+	            }
+	          }
+	          while (i < rhs.length) {
+	            changes(new DiffArray(currentPath, i, new DiffNew(undefined, rhs[i++])));
+	          }
+	        } else {
+	          var akeys = Object.keys(lhs);
+	          var pkeys = Object.keys(rhs);
+	          akeys.forEach(function(k, i) {
+	            var other = pkeys.indexOf(k);
+	            if (other >= 0) {
+	              deepDiff(lhs[k], rhs[k], changes, prefilter, currentPath, k, stack);
+	              pkeys = arrayRemove(pkeys, other);
+	            } else {
+	              deepDiff(lhs[k], undefined, changes, prefilter, currentPath, k, stack);
+	            }
+	          });
+	          pkeys.forEach(function(k) {
+	            deepDiff(undefined, rhs[k], changes, prefilter, currentPath, k, stack);
+	          });
+	        }
+	        stack.length = stack.length - 1;
+	      }
+	    } else if (lhs !== rhs) {
+	      if (!(ltype === 'number' && isNaN(lhs) && isNaN(rhs))) {
+	        changes(new DiffEdit(currentPath, lhs, rhs));
+	      }
+	    }
+	  }
+	
+	  function accumulateDiff(lhs, rhs, prefilter, accum) {
+	    accum = accum || [];
+	    deepDiff(lhs, rhs,
+	      function(diff) {
+	        if (diff) {
+	          accum.push(diff);
+	        }
+	      },
+	      prefilter);
+	    return (accum.length) ? accum : undefined;
+	  }
+	
+	  function applyArrayChange(arr, index, change) {
+	    if (change.path && change.path.length) {
+	      var it = arr[index],
+	          i, u = change.path.length - 1;
+	      for (i = 0; i < u; i++) {
+	        it = it[change.path[i]];
+	      }
+	      switch (change.kind) {
+	        case 'A':
+	          applyArrayChange(it[change.path[i]], change.index, change.item);
+	          break;
+	        case 'D':
+	          delete it[change.path[i]];
+	          break;
+	        case 'E':
+	        case 'N':
+	          it[change.path[i]] = change.rhs;
+	          break;
+	      }
+	    } else {
+	      switch (change.kind) {
+	        case 'A':
+	          applyArrayChange(arr[index], change.index, change.item);
+	          break;
+	        case 'D':
+	          arr = arrayRemove(arr, index);
+	          break;
+	        case 'E':
+	        case 'N':
+	          arr[index] = change.rhs;
+	          break;
+	      }
+	    }
+	    return arr;
+	  }
+	
+	  function applyChange(target, source, change) {
+	    if (target && source && change && change.kind) {
+	      var it = target,
+	          i = -1,
+	          last = change.path ? change.path.length - 1 : 0;
+	      while (++i < last) {
+	        if (typeof it[change.path[i]] === 'undefined') {
+	          it[change.path[i]] = (typeof change.path[i] === 'number') ? [] : {};
+	        }
+	        it = it[change.path[i]];
+	      }
+	      switch (change.kind) {
+	        case 'A':
+	          applyArrayChange(change.path ? it[change.path[i]] : it, change.index, change.item);
+	          break;
+	        case 'D':
+	          delete it[change.path[i]];
+	          break;
+	        case 'E':
+	        case 'N':
+	          it[change.path[i]] = change.rhs;
+	          break;
+	      }
+	    }
+	  }
+	
+	  function revertArrayChange(arr, index, change) {
+	    if (change.path && change.path.length) {
+	      // the structure of the object at the index has changed...
+	      var it = arr[index],
+	          i, u = change.path.length - 1;
+	      for (i = 0; i < u; i++) {
+	        it = it[change.path[i]];
+	      }
+	      switch (change.kind) {
+	        case 'A':
+	          revertArrayChange(it[change.path[i]], change.index, change.item);
+	          break;
+	        case 'D':
+	          it[change.path[i]] = change.lhs;
+	          break;
+	        case 'E':
+	          it[change.path[i]] = change.lhs;
+	          break;
+	        case 'N':
+	          delete it[change.path[i]];
+	          break;
+	      }
+	    } else {
+	      // the array item is different...
+	      switch (change.kind) {
+	        case 'A':
+	          revertArrayChange(arr[index], change.index, change.item);
+	          break;
+	        case 'D':
+	          arr[index] = change.lhs;
+	          break;
+	        case 'E':
+	          arr[index] = change.lhs;
+	          break;
+	        case 'N':
+	          arr = arrayRemove(arr, index);
+	          break;
+	      }
+	    }
+	    return arr;
+	  }
+	
+	  function revertChange(target, source, change) {
+	    if (target && source && change && change.kind) {
+	      var it = target,
+	          i, u;
+	      u = change.path.length - 1;
+	      for (i = 0; i < u; i++) {
+	        if (typeof it[change.path[i]] === 'undefined') {
+	          it[change.path[i]] = {};
+	        }
+	        it = it[change.path[i]];
+	      }
+	      switch (change.kind) {
+	        case 'A':
+	          // Array was modified...
+	          // it will be an array...
+	          revertArrayChange(it[change.path[i]], change.index, change.item);
+	          break;
+	        case 'D':
+	          // Item was deleted...
+	          it[change.path[i]] = change.lhs;
+	          break;
+	        case 'E':
+	          // Item was edited...
+	          it[change.path[i]] = change.lhs;
+	          break;
+	        case 'N':
+	          // Item is new...
+	          delete it[change.path[i]];
+	          break;
+	      }
+	    }
+	  }
+	
+	  function applyDiff(target, source, filter) {
+	    if (target && source) {
+	      var onChange = function(change) {
+	        if (!filter || filter(target, source, change)) {
+	          applyChange(target, source, change);
+	        }
+	      };
+	      deepDiff(target, source, onChange);
+	    }
+	  }
+	
+	  Object.defineProperties(accumulateDiff, {
+	
+	    diff: {
+	      value: accumulateDiff,
+	      enumerable: true
+	    },
+	    observableDiff: {
+	      value: deepDiff,
+	      enumerable: true
+	    },
+	    applyDiff: {
+	      value: applyDiff,
+	      enumerable: true
+	    },
+	    applyChange: {
+	      value: applyChange,
+	      enumerable: true
+	    },
+	    revertChange: {
+	      value: revertChange,
+	      enumerable: true
+	    },
+	    isConflict: {
+	      value: function() {
+	        return 'undefined' !== typeof conflict;
+	      },
+	      enumerable: true
+	    },
+	    noConflict: {
+	      value: function() {
+	        if (conflictResolution) {
+	          conflictResolution.forEach(function(it) {
+	            it();
+	          });
+	          conflictResolution = null;
+	        }
+	        return accumulateDiff;
+	      },
+	      enumerable: true
+	    }
+	  });
+	
+	  return accumulateDiff;
+	}));
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 237 */
+/*!****************************************!*\
+  !*** ./~/redux-logger/lib/defaults.js ***!
+  \****************************************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = {
+	  level: "log",
+	  logger: console,
+	  logErrors: true,
+	  collapsed: undefined,
+	  predicate: undefined,
+	  duration: false,
+	  timestamp: true,
+	  stateTransformer: function stateTransformer(state) {
+	    return state;
+	  },
+	  actionTransformer: function actionTransformer(action) {
+	    return action;
+	  },
+	  errorTransformer: function errorTransformer(error) {
+	    return error;
+	  },
+	  colors: {
+	    title: function title() {
+	      return "inherit";
+	    },
+	    prevState: function prevState() {
+	      return "#9E9E9E";
+	    },
+	    action: function action() {
+	      return "#03A9F4";
+	    },
+	    nextState: function nextState() {
+	      return "#4CAF50";
+	    },
+	    error: function error() {
+	      return "#F20404";
+	    }
+	  },
+	  diff: false,
+	  diffPredicate: undefined,
+	
+	  // Deprecated options
+	  transformer: undefined
+	};
+	module.exports = exports['default'];
 
 /***/ }
 /******/ ]);

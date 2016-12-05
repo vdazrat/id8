@@ -5,7 +5,9 @@ This is a container as it fetches the data from the server and maps the state to
 
 import {connect} from 'react-redux';
 import SideMenuComponent from '../components/SideMenuComponent';
-import {addSideMenuItem,clickSideMenuItem} from '../actions';
+import {addSideMenuItem,sideMenuClick} from '../actions';
+import {fetchDashBoard,fetchOverview} from '../actions';
+
 
 /*
 mapStateToProps
@@ -25,7 +27,8 @@ const mapStateToProps = (state)=> {
 const mapDispatchToProps = (dispatch)=>{
 	return{
 		onClick: (data)=>{
-			dispatch(clickSideMenuItem(data));
+			dispatch(sideMenuClick(data));
+			
 		}
 	};
 }

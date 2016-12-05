@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import auth
 from django.contrib.auth import authenticate
 from p3app.dash_board.models import DashBoard
-
+from rest_framework import reverse
+import json
 
 # Create your views here.
 
@@ -31,8 +32,14 @@ def signin(request):
 def home(request):
     # get the data for dashboards
     dashboards = " ".join([dashboard.title for dashboard in DashBoard.objects.all()])
+
+    #subItems:[{title:'',api:''},{title:'',api:''}]
+    dbs = [{"title":dashboard.title,
+            "api":reverse.reverse('api:dashboard-detail',args=[dashboard.id],request=request) }
+            for dashboard in DashBoard.objects.all() ]
+    dashboard_urls = json.dumps(dbs)
     template = loader.get_template('p3app/home.html')
-    return HttpResponse(template.render({"dashboards":dashboards},request))
+    return HttpResponse(template.render({"dashboards":dashboard_urls},request))
 
 def logout(request):
     auth.logout(request)

@@ -11,6 +11,10 @@ mainReducer.
 Each reducer is named the same as the property name in the state
 */
 import { combineReducers } from 'redux'
+import { FETCH_DASHBOARD_REQUEST,FETCH_DASHBOARD_SUCCESS } from '../actions'
+import { FETCH_OVERVIEW } from '../actions'
+import { FETCH_CELL_REQUEST, FETCH_CELL_SUCCESS} from '../actions'
+
 
 
 
@@ -76,6 +80,118 @@ const sideMenuItems = (state,action) => {
 
 }
 
+
+/*
+mainFrame reducer:
+This reduces the central display area.
+The state is as folows:
+
+mainFrame = {
+    displaying: "dashboards",
+    data: {
+        title:"CPM",
+        cells:[
+         {
+           isFetching:false,
+           isInvalidated:false,
+           api:'http://..'
+           payload:{
+              cell_type:'TextData',
+              ...
+           }
+         },
+         {
+            isFetching:True,
+            isInvalidated:false,
+            api:'http://..',
+            payload:{}
+
+         }
+        ]
+    }
+}
+*/
+
+const mainFrame = (state,action)=>{
+  if(typeof state === 'undefined'){
+        return initialState.mainFrame;
+    }
+    switch(action.type){
+       
+        case FETCH_DASHBOARD_REQUEST:{
+            return Object.assign({},{displaying:action.displaying},{isFetching:true});
+
+        }
+        case FETCH_DASHBOARD_SUCCESS:{
+             console.log(action);
+            return Object.assign({},{displaying:action.displaying,
+                                    data:action.data},
+                                    {isFetching:false});
+        }
+
+        case FETCH_CELL_REQUEST:
+        case FETCH_CELL_SUCCESS:{
+             return(Object.assign({},state,
+                {data:Object.assign({},state.data,{cells:cells(state.data.cells,action)})
+            }));
+        }
+
+        case FETCH_OVERVIEW:{
+             return Object.assign({},{displaying:action.displaying},{isFetching:false});
+        }
+
+        default: return state;
+
+    }
+
+}
+
+/*
+cells reducer,
+for mainFrame.data.cells
+cells = {
+    isFetching: true,
+    payload:{}
+}
+*/
+
+const cells = (state=[],action) =>{
+    switch(action.type){
+
+        case FETCH_CELL_REQUEST:
+        case FETCH_CELL_SUCCESS:{
+             return state.map((c)=> cell(c,action));
+
+        }
+        default: return state;
+    }
+
+}
+
+const cell = (state,action) => {
+    if(action.api !== state.api){
+        // only respond your own cell
+        return state;
+    }
+
+    switch(action.type){
+
+            case FETCH_CELL_REQUEST:{
+                 return {isFetching:true,
+                         api:action.api};
+            }
+            case FETCH_CELL_SUCCESS:{
+                 return {isFetching:false,
+                         api:action.api,
+                         payload:action.payload};
+
+            }
+            default: return state;
+        }
+
+
+    }
+
 /*
 mainReducer
 Combine the reducer for each property in the state tree.
@@ -93,7 +209,8 @@ export const mainReducer = (state,action)=>{
     	return initialState;
     }
     return{
-    	sideMenu: sideMenu(state.sideMenu,action)
+    	sideMenu: sideMenu(state.sideMenu,action),
+        mainFrame: mainFrame(state.mainFrame,action)
     };
 
 }

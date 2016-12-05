@@ -11,10 +11,22 @@ class TextData(models.Model):
         return 'p3app.charts.serializers','TextDataSerializer'
 
 class Chart(models.Model):
+    
+    CHART_TYPES = (
+                      ('pie','pie'),
+                       ('donut','donut'),
+                       ('hist','hist'),
+                       ('bar','bar'),
+                       ('scatter','scatter'),
+                       ('time','time'),
+                      )
+
     cell = models.OneToOneField(Cell,null=True,related_name='charts')
     title = models.TextField(null=True,blank=True)
     xlabel = models.TextField(null=True,blank=True)
     ylabel = models.TextField(null=True,blank=True)
+    chart_type = models.CharField(max_length=20,
+                                  choices=CHART_TYPES)
 
     def get_serializer(self):
         return 'p3app.charts.serializers','ChartSerializer'
@@ -26,10 +38,10 @@ class Figure(models.Model):
     def get_figure_dataframe(self,format='json'):
         '''Apply the formula on the dataset and return the resulting dataframe
         '''
-        df =  self.chart.cell.dashboard.dataset.data_cache.get_dataframe()
+        df =  formulas.apply_formula(self.formula,
+                self.chart.cell.dashboard.dataset.data_cache.get_dataframe())
         if format == 'json':
             return df.to_json()
 
-        return formulas.apply_formula(self.formula,df)
-
+        return df
 

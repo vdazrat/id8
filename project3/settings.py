@@ -25,7 +25,7 @@ SECRET_KEY = 'ns_s_sm0zoue-=y0j&mvt3z-*%bv8ysgkuvy8n7g+7ijk5k3il'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0','192.168.1.102','127.0.0.1']
+ALLOWED_HOSTS = ['0.0.0.0','192.168.1.103','127.0.0.1']
 
 
 # Application definition
