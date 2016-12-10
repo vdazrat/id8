@@ -67,25 +67,30 @@
 	
 	var _MainFrameContainer2 = _interopRequireDefault(_MainFrameContainer);
 	
-	var _reducers = __webpack_require__(/*! ./reducers */ 230);
+	var _reducers = __webpack_require__(/*! ./reducers */ 234);
 	
 	var _MainFrameComponent = __webpack_require__(/*! ./components/MainFrameComponent */ 227);
 	
 	var _MainFrameComponent2 = _interopRequireDefault(_MainFrameComponent);
 	
-	var _reduxThunk = __webpack_require__(/*! redux-thunk */ 231);
+	var _reduxThunk = __webpack_require__(/*! redux-thunk */ 237);
 	
 	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
 	
-	var _reduxLogger = __webpack_require__(/*! redux-logger */ 232);
+	var _reduxLogger = __webpack_require__(/*! redux-logger */ 238);
 	
 	var _reduxLogger2 = _interopRequireDefault(_reduxLogger);
+	
+	var _reduxMulti = __webpack_require__(/*! redux-multi */ 244);
+	
+	var _reduxMulti2 = _interopRequireDefault(_reduxMulti);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var loggerMiddleware = (0, _reduxLogger2.default)();
 	
-	var store = (0, _redux.createStore)(_reducers.mainReducer, (0, _redux.applyMiddleware)(_reduxThunk2.default, // lets us dispatch() functions
+	var store = (0, _redux.createStore)(_reducers.mainReducer, (0, _redux.applyMiddleware)(_reduxMulti2.default, // lets us dispatch array of actions
+	_reduxThunk2.default, // lets us dispatch() functions
 	loggerMiddleware // neat middleware that logs actions
 	));
 	// just to test functions, remove later.
@@ -93,14 +98,14 @@
 	window.store = store;
 	
 	(0, _reactDom.render)(_react2.default.createElement(
-	    _reactRedux.Provider,
-	    { store: store },
-	    _react2.default.createElement(_SideMenuContainer2.default, null)
+	  _reactRedux.Provider,
+	  { store: store },
+	  _react2.default.createElement(_SideMenuContainer2.default, null)
 	), document.getElementById('sidemenu'));
 	(0, _reactDom.render)(_react2.default.createElement(
-	    _reactRedux.Provider,
-	    { store: store },
-	    _react2.default.createElement(_MainFrameContainer2.default, null)
+	  _reactRedux.Provider,
+	  { store: store },
+	  _react2.default.createElement(_MainFrameContainer2.default, null)
 	), document.getElementById('mainframe'));
 
 /***/ },
@@ -24545,7 +24550,7 @@
 				dispatch((0, _actions.sideMenuClick)(data));
 			},
 			onAdd: function onAdd(data) {
-				dispatch((0, _actions.clickSideMenuItem)(data));
+				dispatch((0, _actions.sideMenuClick)(data));
 			}
 		};
 	};
@@ -24758,6 +24763,7 @@
 	exports.sideMenuClick = sideMenuClick;
 	exports.fetchDashBoard = fetchDashBoard;
 	exports.fetchCell = fetchCell;
+	exports.submitForm = submitForm;
 	/*
 	Contains all the actions and action creators
 	An action creator is a pure funcion that accepts a data and
@@ -24768,6 +24774,7 @@
 	addSideMenuItems 
 	expects data with name and an array subItems.
 	*/
+	var ADD_SIDEMENU_SUBITEM = exports.ADD_SIDEMENU_SUBITEM = "ADD_SIDEMENU_SUBITEM";
 	var addSideMenuItem = exports.addSideMenuItem = function addSideMenuItem(data) {
 	
 		return Object.assign({}, { name: data.name,
@@ -24776,6 +24783,7 @@
 	/*
 	this action is dispatched on sidemenuitem click
 	*/
+	var CLICK_SIDEMENU_ITEM = exports.CLICK_SIDEMENU_ITEM = "CLICK_SIDEMENU_ITEM";
 	var clickSideMenuItem = exports.clickSideMenuItem = function clickSideMenuItem(data) {
 		var selected = {};
 		selected.name = data.name;
@@ -24784,7 +24792,7 @@
 		}
 		return {
 			selected: selected,
-			type: "CLICK_SIDEMENU_ITEM" };
+			type: CLICK_SIDEMENU_ITEM };
 	};
 	/*
 	CHANGE_FRAME action creator
@@ -24811,14 +24819,27 @@
 	
 			// dispatch fetching of dashboard data
 			if (data.name === "Dashboards") {
-				dispatch(fetchDashBoard({
-					displaying: data.name,
-					api: data.api
-				}));
+				// A new dashboard creation action
+				if (data.subItem === "new") {
+					dispatch(fetchNewDashBoard());
+				} else {
+					dispatch(fetchDashBoard({
+						displaying: data.name,
+						api: data.api
+					}));
+				}
 			}
 			// dispatch fetching of the overview 
 			if (data.name === "Overview") {
 				dispatch(fetchOverview());
+			}
+			// dispatch fetching of datasets
+			if (data.name === "Datasets") {
+	
+				// A new dataset creation action
+				if (data.subItem === "new") {
+					dispatch(fetchNewDataset());
+				} // else..
 			}
 		};
 	}
@@ -24830,6 +24851,12 @@
 	var FETCH_DASHBOARD_REQUEST = exports.FETCH_DASHBOARD_REQUEST = 'FETCH_DASHBOARD_REQUEST';
 	var FETCH_DASHBOARD_SUCCESS = exports.FETCH_DASHBOARD_SUCCESS = 'FETCH_DASHBOARD_SUCCESS';
 	var FETCH_DASHBOARD_FAIL = exports.FETCH_DASHBOARD_FAIL = 'FETCH_DASHBOARD_FAIL';
+	var FETCH_NEW_DASHBOARD_FORM = exports.FETCH_NEW_DASHBOARD_FORM = 'FETCH_NEW_DASHBOARD_FORM';
+	
+	var fetchNewDashBoard = function fetchNewDashBoard(data) {
+		return { type: FETCH_NEW_DASHBOARD_FORM,
+			displaying: 'New DashBoard' };
+	};
 	
 	var requestDashBoard = function requestDashBoard(data) {
 		return Object.assign({}, { type: FETCH_DASHBOARD_REQUEST,
@@ -24906,6 +24933,17 @@
 	};
 	
 	/*
+	new dashboard action creators
+	*/
+	
+	var FETCH_NEW_DATASET_FORM = exports.FETCH_NEW_DATASET_FORM = 'FETCH_NEW_DATASET_FORM';
+	var fetchNewDataset = exports.fetchNewDataset = function fetchNewDataset(data) {
+	
+		return { type: FETCH_NEW_DATASET_FORM,
+			displaying: 'New Dataset' };
+	};
+	
+	/*
 	Cell action creators 
 	*/
 	var FETCH_CELL_REQUEST = exports.FETCH_CELL_REQUEST = 'FETCH_CELL_REQUEST';
@@ -24940,6 +24978,75 @@
 			});
 		};
 	}
+	
+	/*
+	Submitting of forms:
+	*/
+	var SUBMIT_FORM_REQUEST = exports.SUBMIT_FORM_REQUEST = 'SUBMIT_FORM_REQUEST';
+	var SUBMIT_FORM_SUCCESS = exports.SUBMIT_FORM_SUCCESS = 'SUBMIT_FORM_SUCCESS';
+	var SUBMIT_FORM_FAIL = exports.SUBMIT_FORM_FAIL = 'SUBMIT_FORM_FAIL';
+	
+	var submitFormRequest = function submitFormRequest() {
+		return { type: SUBMIT_FORM_REQUEST };
+	};
+	var submitFormSuccess = exports.submitFormSuccess = function submitFormSuccess() {
+		return { type: SUBMIT_FORM_SUCCESS };
+	};
+	var submitFormFail = exports.submitFormFail = function submitFormFail() {
+		return { type: SUBMIT_FORM_FAIL };
+	};
+	
+	function submitForm(data, action, onSuccess, onFailure) {
+		/*
+	 data is form data, action is the url for the post
+	 */
+		return function (dispatch) {
+			dispatch(submitFormRequest());
+	
+			// Make a POST request witht the action
+			$.ajax({
+				url: action,
+				data: data.formData,
+				processData: false,
+				contentType: false,
+				type: 'POST',
+				success: onSuccess,
+				error: onFailure
+			});
+		};
+	}
+	
+	/*
+	Dataset form success actions
+	*/
+	var SUBMIT_DATASET_FORM_SUCCESS = exports.SUBMIT_DATASET_FORM_SUCCESS = 'SUBMIT_DATASET_FORM_SUCCESS';
+	var submitDatasetFormSuccess = exports.submitDatasetFormSuccess = function submitDatasetFormSuccess(data) {
+		return [{
+			type: ADD_SIDEMENU_SUBITEM,
+			name: 'Datasets',
+			subItem: { title: data.name, api: data.api }
+	
+		}, {
+			type: SUBMIT_DATASET_FORM_SUCCESS
+	
+		}];
+	};
+	
+	/*
+	Dashboard form success actions
+	*/
+	var SUBMIT_DASHBOARD_FORM_SUCCESS = exports.SUBMIT_DASHBOARD_FORM_SUCCESS = 'SUBMIT_DASHBOARD_FORM_SUCCESS';
+	var submitDashboardFormSuccess = exports.submitDashboardFormSuccess = function submitDashboardFormSuccess(data) {
+		return [{
+			type: ADD_SIDEMENU_SUBITEM,
+			name: 'Dashboards',
+			subItem: { title: data.title, api: data.api }
+	
+		}, {
+			type: SUBMIT_DASHBOARD_FORM_SUCCESS
+	
+		}];
+	};
 
 /***/ },
 /* 226 */
@@ -25005,6 +25112,14 @@
 	
 	var _CellComponent2 = _interopRequireDefault(_CellComponent);
 	
+	var _NewDatasetContainer = __webpack_require__(/*! ../containers/NewDatasetContainer */ 230);
+	
+	var _NewDatasetContainer2 = _interopRequireDefault(_NewDatasetContainer);
+	
+	var _NewDashBoardContainer = __webpack_require__(/*! ../containers/NewDashBoardContainer */ 232);
+	
+	var _NewDashBoardContainer2 = _interopRequireDefault(_NewDashBoardContainer);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	/*
@@ -25036,7 +25151,15 @@
 	                }
 	                return _react2.default.createElement(DashBoardViewComponent, { data: mainFrame.data });
 	            }
-	        case "overview":
+	        case "New Dataset":
+	            {
+	                return _react2.default.createElement(_NewDatasetContainer2.default, null);
+	            }
+	        case "New DashBoard":
+	            {
+	                return _react2.default.createElement(_NewDashBoardContainer2.default, null);
+	            }
+	        case "Overview":
 	            {
 	                return _react2.default.createElement('div', null);
 	            }
@@ -25251,6 +25374,13 @@
 	                    columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
 	                }, { type: 'pie' });
 	            }
+	        case 'bar':
+	            {
+	
+	                return Object.assign({}, {
+	                    columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
+	                }, { type: 'bar' });
+	            }
 	    }
 	};
 	
@@ -25310,6 +25440,420 @@
 
 /***/ },
 /* 230 */
+/*!***********************************************!*\
+  !*** ./src/containers/NewDatasetContainer.js ***!
+  \***********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _reactRedux = __webpack_require__(/*! react-redux */ 204);
+	
+	var _NewDatasetComponent = __webpack_require__(/*! ../components/NewDatasetComponent */ 231);
+	
+	var _NewDatasetComponent2 = _interopRequireDefault(_NewDatasetComponent);
+	
+	var _actions = __webpack_require__(/*! ../actions */ 225);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	
+		return {
+			onFormSubmit: function onFormSubmit(data, action, onSuccess, onFailure) {
+				dispatch((0, _actions.submitForm)(data, action, onSuccess, onFailure));
+			},
+			onSuccess: function onSuccess(data) {
+				dispatch((0, _actions.submitDatasetFormSuccess)(data));
+			},
+			onFailure: function onFailure(response) {
+				dispatch((0, _actions.submitFormFail)(response));
+			}
+		};
+	};
+	
+	var mapStateToProps = function mapStateToProps(state) {
+	
+		return {
+			submitted: state.mainFrame.submitted,
+			isFetching: state.mainFrame.isFetching,
+			success: state.mainFrame.success
+		};
+	};
+	
+	var NewDatasetContainer = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(_NewDatasetComponent2.default);
+	
+	exports.default = NewDatasetContainer;
+
+/***/ },
+/* 231 */
+/*!***********************************************!*\
+  !*** ./src/components/NewDatasetComponent.js ***!
+  \***********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var NewDatasetComponent = function NewDatasetComponent(_ref) {
+	  var isFetching = _ref.isFetching,
+	      submitted = _ref.submitted,
+	      success = _ref.success,
+	      onFormSubmit = _ref.onFormSubmit,
+	      onSuccess = _ref.onSuccess,
+	      onFailure = _ref.onFailure;
+	
+	  return submitted === true ? _react2.default.createElement(
+	    "div",
+	    { className: "dataset-form" },
+	    _react2.default.createElement(
+	      "div",
+	      { className: "col-sm-8" },
+	      _react2.default.createElement(
+	        "div",
+	        { className: "page-header" },
+	        success ? "Request has been submittted" : "Request has failed"
+	      )
+	    )
+	  ) : _react2.default.createElement(
+	    "div",
+	    { className: "dataset-form" },
+	    _react2.default.createElement(
+	      "div",
+	      { className: "col-sm-8" },
+	      _react2.default.createElement(
+	        "div",
+	        { className: "page-header" },
+	        _react2.default.createElement(
+	          "h1",
+	          null,
+	          "Add a new Dataset"
+	        )
+	      ),
+	      _react2.default.createElement(
+	        "div",
+	        { className: "section" },
+	        _react2.default.createElement(
+	          "form",
+	          { id: "dataset-form", onSubmit: function onSubmit(e) {
+	              e.preventDefault();
+	              // validate the form data
+	              var fd = new FormData($("#dataset-form")[0]);
+	              if (!validate(fd)) {
+	                return false;
+	              }
+	              onFormSubmit({ formData: fd }, "/api/dataset/", onSuccess, onFailure);
+	            } },
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              { htmlFor: "dataset-name" },
+	              "Dataset Name"
+	            ),
+	            _react2.default.createElement("input", { type: "text", name: "dataset-name", className: "form-control", placeholder: "Enter a name for the dataset" })
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              null,
+	              "Set the data via"
+	            ),
+	            _react2.default.createElement(
+	              "div",
+	              { className: "radio" },
+	              _react2.default.createElement(
+	                "label",
+	                null,
+	                _react2.default.createElement("input", { type: "radio", name: "dataset-type", defaultChecked: true, value: "csv" }),
+	                "CSV"
+	              )
+	            ),
+	            _react2.default.createElement(
+	              "div",
+	              { className: "radio" },
+	              _react2.default.createElement(
+	                "label",
+	                null,
+	                _react2.default.createElement("input", { type: "radio", name: "dataset-type", value: "api" }),
+	                "API"
+	              )
+	            )
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              { htmlFor: "csv-file" },
+	              "Upload CSV"
+	            ),
+	            _react2.default.createElement("input", { type: "file", name: "csv-file" }),
+	            _react2.default.createElement(
+	              "p",
+	              { className: "help-block" },
+	              "Upload a CSV file."
+	            )
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              { htmlFor: "description" },
+	              "Description"
+	            ),
+	            _react2.default.createElement("textarea", { name: "description", className: "form-control", placeholder: "Include a brief description of what the data is.." })
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            isFetching === false ? _react2.default.createElement(
+	              "button",
+	              { type: "submit", className: "btn btn-primary" },
+	              "Submit"
+	            ) : _react2.default.createElement(
+	              "button",
+	              { className: "btn btn-primary disabled", disabled: true },
+	              "Submiting, please wait"
+	            )
+	          )
+	        )
+	      )
+	    )
+	  );
+	}; /*
+	   Component to add a new dataset
+	   */
+	
+	
+	function validate(formData) {
+	
+	  if (formData.get('dataset-name') === '') {
+	    alert('Please enter a name for the dataset!');
+	    return false;
+	  }
+	  if (formData.get('dataset-type') === 'csv' && formData.get('csv-file').size === 0) {
+	    alert('Please select a CSV file!');
+	    return false;
+	  }
+	  return true;
+	}
+	
+	exports.default = NewDatasetComponent;
+
+/***/ },
+/* 232 */
+/*!*************************************************!*\
+  !*** ./src/containers/NewDashBoardContainer.js ***!
+  \*************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _reactRedux = __webpack_require__(/*! react-redux */ 204);
+	
+	var _NewDashBoardComponent = __webpack_require__(/*! ../components/NewDashBoardComponent */ 233);
+	
+	var _NewDashBoardComponent2 = _interopRequireDefault(_NewDashBoardComponent);
+	
+	var _actions = __webpack_require__(/*! ../actions */ 225);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var mapStateToProps = function mapStateToProps(state) {
+	
+		// This requires the datasets, so fetch it from the state.sidemenu
+		var datasets = state.sideMenu.sideMenuItems.filter(function (v) {
+			return v.name === "Datasets";
+		})[0];
+	
+		return {
+			submitted: state.mainFrame.submitted,
+			isFetching: state.mainFrame.isFetching,
+			success: state.mainFrame.success,
+			datasets: datasets.subItems
+		};
+	};
+	
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	
+		return {
+			onFormSubmit: function onFormSubmit(data, action, onSuccess, onFailure) {
+				dispatch((0, _actions.submitForm)(data, action, onSuccess, onFailure));
+			},
+			onSuccess: function onSuccess(data) {
+				dispatch((0, _actions.submitDashboardFormSuccess)(data));
+			},
+			onFailure: function onFailure(response) {
+				dispatch((0, _actions.submitFormFail)(response));
+			}
+		};
+	};
+	
+	var NewDashBoardContainer = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(_NewDashBoardComponent2.default);
+	
+	exports.default = NewDashBoardContainer;
+
+/***/ },
+/* 233 */
+/*!*************************************************!*\
+  !*** ./src/components/NewDashBoardComponent.js ***!
+  \*************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var NewDashBoardComponent = function NewDashBoardComponent(_ref) {
+	  var isFetching = _ref.isFetching,
+	      submitted = _ref.submitted,
+	      success = _ref.success,
+	      datasets = _ref.datasets,
+	      onFormSubmit = _ref.onFormSubmit,
+	      onSuccess = _ref.onSuccess,
+	      onFailure = _ref.onFailure;
+	
+	
+	  return submitted === true ? _react2.default.createElement(
+	    "div",
+	    { className: "dataset-form" },
+	    _react2.default.createElement(
+	      "div",
+	      { className: "col-sm-8" },
+	      _react2.default.createElement(
+	        "div",
+	        { className: "page-header" },
+	        success ? "Request has been submittted" : "Request has failed"
+	      )
+	    )
+	  ) : _react2.default.createElement(
+	    "div",
+	    { className: "dashboard-form" },
+	    _react2.default.createElement(
+	      "div",
+	      { className: "col-sm-8" },
+	      _react2.default.createElement(
+	        "div",
+	        { className: "page-header" },
+	        _react2.default.createElement(
+	          "h1",
+	          null,
+	          "Add a new Dashboard"
+	        )
+	      ),
+	      _react2.default.createElement(
+	        "div",
+	        { className: "section" },
+	        _react2.default.createElement(
+	          "form",
+	          { id: "dashboard-form", action: "/api/dashboard/", onSubmit: function onSubmit(e) {
+	              e.preventDefault();
+	              // validate the form data
+	              var fd = new FormData($("#dashboard-form")[0]);
+	              if (!validate(fd)) {
+	                return false;
+	              }
+	              onFormSubmit({ formData: fd }, $("#dashboard-form").attr('action'), onSuccess, onFailure);
+	            } },
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              { htmlFor: "title" },
+	              "Dashboard Name"
+	            ),
+	            _react2.default.createElement("input", { type: "text", name: "title", className: "form-control", placeholder: "Enter a name for the dashboard" })
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              null,
+	              "Select a Dataset"
+	            ),
+	            formDatasetSelect(datasets)
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            isFetching === false ? _react2.default.createElement(
+	              "button",
+	              { type: "submit", className: "btn btn-primary" },
+	              "Submit"
+	            ) : _react2.default.createElement(
+	              "button",
+	              { className: "btn btn-primary disabled", disabled: true },
+	              "Submiting, please wait"
+	            )
+	          )
+	        )
+	      )
+	    )
+	  );
+	}; /*
+	   Component to add a new dashboard
+	   */
+	
+	
+	var formDatasetSelect = function formDatasetSelect(datasets) {
+	  /*dataset has the shape 
+	    dataset = [{title:"",api:""},{title:"",api:""}...]
+	  */
+	  var datasetList = datasets.map(function (v, i) {
+	    return _react2.default.createElement(
+	      "option",
+	      { key: "dset-" + i, value: v.api },
+	      v.title
+	    );
+	  });
+	  return _react2.default.createElement(
+	    "select",
+	    { className: "form-control", name: "dataset" },
+	    datasetList
+	  );
+	};
+	
+	function validate(formData) {
+	
+	  return true;
+	}
+	
+	exports.default = NewDashBoardComponent;
+
+/***/ },
+/* 234 */
 /*!*******************************!*\
   !*** ./src/reducers/index.js ***!
   \*******************************/
@@ -25322,9 +25866,17 @@
 	});
 	exports.mainReducer = exports.sideMenu = undefined;
 	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
 	var _redux = __webpack_require__(/*! redux */ 183);
 	
+	var _reactAddonsUpdate = __webpack_require__(/*! react-addons-update */ 235);
+	
+	var _reactAddonsUpdate2 = _interopRequireDefault(_reactAddonsUpdate);
+	
 	var _actions = __webpack_require__(/*! ../actions */ 225);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } /*
 	                                                                                                                                                                                                    Module that contains all the reducers for the app.
@@ -25338,7 +25890,18 @@
 	                                                                                                                                                                                                    
 	                                                                                                                                                                                                    Each reducer is named the same as the property name in the state
 	                                                                                                                                                                                                    */
+	// for updating arrays
 	
+	// dashboard actions
+	// cell actions
+	// form actions
+	
+	
+	// datasetform actions
+	
+	
+	// only for debugging purposes, remove later
+	window.update = _reactAddonsUpdate2.default;
 	
 	/*
 	Define the initialState
@@ -25351,8 +25914,14 @@
 	This reducer is for the sidemenu bar. 
 	the sideMenu part of the state looks like this
 	sideMenu : {
-		sideMenuItems: [{name:"Dashboards",subItems:["CPM","Bugdb"]},
-		        {name:"profile"}
+		sideMenuItems: [{name:"Dashboards",
+	                  subItems:[{title:"CPM",api:"http://.."},{title:"Bugdb",api:"http://.."}],
+	                  icon:"dashboards",
+	                  addNew:{title:"New Dashboard"}},  // addNew attribute is for those sidemenu items that have a new form.
+		                {name:"profile",
+	                  subItems:[**this needs to be present for every name, even if there are no subItems**],
+	                  icon:"profile",  // the icon name is the bootstrap awesome font name
+	                  }
 		]
 	}
 	*/
@@ -25368,7 +25937,13 @@
 	                return Object.assign({}, state, { sideMenuItems: sideMenuItems(state.sideMenuItems, action),
 	                    selected: state.selected });
 	            }
-	        case "CLICK_SIDEMENU_ITEM":
+	
+	        case _actions.ADD_SIDEMENU_SUBITEM:
+	            {
+	                return Object.assign({}, state, { sideMenuItems: sideMenuItems(state.sideMenuItems, action),
+	                    selected: state.selected });
+	            }
+	        case _actions.CLICK_SIDEMENU_ITEM:
 	            {
 	                /*
 	                No need to deal with sideMenuItems, only update the selected property
@@ -25393,6 +25968,27 @@
 	                    subItems: action.subItems
 	                }]);
 	            }
+	        case _actions.ADD_SIDEMENU_SUBITEM:
+	            {
+	                var _ret = function () {
+	                    // find the submenuitem which has this name
+	                    var stateItem = state.filter(function (v) {
+	                        return v.name === action.name;
+	                    })[0];
+	
+	                    stateItem.subItems.push(action.subItem);
+	                    return {
+	                        v: state.map(function (v) {
+	                            if (v.name === stateItem.name) {
+	                                return stateItem;
+	                            }
+	                            return v;
+	                        })
+	                    };
+	                }();
+	
+	                if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+	            }
 	        default:
 	            return state;
 	    }
@@ -25404,7 +26000,10 @@
 	The state is as folows:
 	
 	mainFrame = {
-	    displaying: "dashboards",
+	    displaying: "Dashboards", // this value comes from state.sidemenu.sideMenuItems[i].name
+	    isFetching: false,       // if page is being fetched from ajax
+	    submitted: false,  // optional - onlny set for new forms
+	    success:false,     // optional - only set for new forms
 	    data: {
 	        title:"CPM",
 	        cells:[
@@ -25456,6 +26055,41 @@
 	        case _actions.FETCH_OVERVIEW:
 	            {
 	                return Object.assign({}, { displaying: action.displaying }, { isFetching: false });
+	            }
+	
+	        case _actions.FETCH_NEW_DATASET_FORM:
+	            {
+	                return Object.assign({}, { displaying: action.displaying }, { isFetching: false });
+	            }
+	        case _actions.FETCH_NEW_DASHBOARD_FORM:
+	            {
+	                return Object.assign({}, { displaying: action.displaying }, { isFetching: false, submitted: false });
+	            }
+	
+	        case _actions.SUBMIT_FORM_REQUEST:
+	            {
+	                return Object.assign({}, state, { isFetching: true, submitted: false });
+	            }
+	
+	        case _actions.SUBMIT_FORM_SUCCESS:
+	            {
+	                return Object.assign({}, state, { isFetching: false, submitted: true, success: true });
+	            }
+	
+	        case _actions.SUBMIT_FORM_FAIL:
+	            {
+	                return Object.assign({}, state, { isFetching: false, submitted: true, succes: false });
+	            }
+	
+	        // from new dataset form actions
+	        case _actions.SUBMIT_DATASET_FORM_SUCCESS:
+	            {
+	                return Object.assign({}, state, { isFetching: false, submitted: true, success: true });
+	            }
+	        // from new dataset form actions
+	        case _actions.SUBMIT_DASHBOARD_FORM_SUCCESS:
+	            {
+	                return Object.assign({}, state, { isFetching: false, submitted: true, success: true });
 	            }
 	
 	        default:
@@ -25538,7 +26172,136 @@
 	};
 
 /***/ },
-/* 231 */
+/* 235 */
+/*!****************************************!*\
+  !*** ./~/react-addons-update/index.js ***!
+  \****************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(/*! react/lib/update */ 236);
+
+/***/ },
+/* 236 */
+/*!*******************************!*\
+  !*** ./~/react/lib/update.js ***!
+  \*******************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 */
+	
+	/* global hasOwnProperty:true */
+	
+	'use strict';
+	
+	var _prodInvariant = __webpack_require__(/*! ./reactProdInvariant */ 7),
+	    _assign = __webpack_require__(/*! object-assign */ 4);
+	
+	var invariant = __webpack_require__(/*! fbjs/lib/invariant */ 8);
+	var hasOwnProperty = {}.hasOwnProperty;
+	
+	function shallowCopy(x) {
+	  if (Array.isArray(x)) {
+	    return x.concat();
+	  } else if (x && typeof x === 'object') {
+	    return _assign(new x.constructor(), x);
+	  } else {
+	    return x;
+	  }
+	}
+	
+	var COMMAND_PUSH = '$push';
+	var COMMAND_UNSHIFT = '$unshift';
+	var COMMAND_SPLICE = '$splice';
+	var COMMAND_SET = '$set';
+	var COMMAND_MERGE = '$merge';
+	var COMMAND_APPLY = '$apply';
+	
+	var ALL_COMMANDS_LIST = [COMMAND_PUSH, COMMAND_UNSHIFT, COMMAND_SPLICE, COMMAND_SET, COMMAND_MERGE, COMMAND_APPLY];
+	
+	var ALL_COMMANDS_SET = {};
+	
+	ALL_COMMANDS_LIST.forEach(function (command) {
+	  ALL_COMMANDS_SET[command] = true;
+	});
+	
+	function invariantArrayCase(value, spec, command) {
+	  !Array.isArray(value) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): expected target of %s to be an array; got %s.', command, value) : _prodInvariant('1', command, value) : void 0;
+	  var specValue = spec[command];
+	  !Array.isArray(specValue) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): expected spec of %s to be an array; got %s. Did you forget to wrap your parameter in an array?', command, specValue) : _prodInvariant('2', command, specValue) : void 0;
+	}
+	
+	/**
+	 * Returns a updated shallow copy of an object without mutating the original.
+	 * See https://facebook.github.io/react/docs/update.html for details.
+	 */
+	function update(value, spec) {
+	  !(typeof spec === 'object') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): You provided a key path to update() that did not contain one of %s. Did you forget to include {%s: ...}?', ALL_COMMANDS_LIST.join(', '), COMMAND_SET) : _prodInvariant('3', ALL_COMMANDS_LIST.join(', '), COMMAND_SET) : void 0;
+	
+	  if (hasOwnProperty.call(spec, COMMAND_SET)) {
+	    !(Object.keys(spec).length === 1) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Cannot have more than one key in an object with %s', COMMAND_SET) : _prodInvariant('4', COMMAND_SET) : void 0;
+	
+	    return spec[COMMAND_SET];
+	  }
+	
+	  var nextValue = shallowCopy(value);
+	
+	  if (hasOwnProperty.call(spec, COMMAND_MERGE)) {
+	    var mergeObj = spec[COMMAND_MERGE];
+	    !(mergeObj && typeof mergeObj === 'object') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): %s expects a spec of type \'object\'; got %s', COMMAND_MERGE, mergeObj) : _prodInvariant('5', COMMAND_MERGE, mergeObj) : void 0;
+	    !(nextValue && typeof nextValue === 'object') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): %s expects a target of type \'object\'; got %s', COMMAND_MERGE, nextValue) : _prodInvariant('6', COMMAND_MERGE, nextValue) : void 0;
+	    _assign(nextValue, spec[COMMAND_MERGE]);
+	  }
+	
+	  if (hasOwnProperty.call(spec, COMMAND_PUSH)) {
+	    invariantArrayCase(value, spec, COMMAND_PUSH);
+	    spec[COMMAND_PUSH].forEach(function (item) {
+	      nextValue.push(item);
+	    });
+	  }
+	
+	  if (hasOwnProperty.call(spec, COMMAND_UNSHIFT)) {
+	    invariantArrayCase(value, spec, COMMAND_UNSHIFT);
+	    spec[COMMAND_UNSHIFT].forEach(function (item) {
+	      nextValue.unshift(item);
+	    });
+	  }
+	
+	  if (hasOwnProperty.call(spec, COMMAND_SPLICE)) {
+	    !Array.isArray(value) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Expected %s target to be an array; got %s', COMMAND_SPLICE, value) : _prodInvariant('7', COMMAND_SPLICE, value) : void 0;
+	    !Array.isArray(spec[COMMAND_SPLICE]) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): expected spec of %s to be an array of arrays; got %s. Did you forget to wrap your parameters in an array?', COMMAND_SPLICE, spec[COMMAND_SPLICE]) : _prodInvariant('8', COMMAND_SPLICE, spec[COMMAND_SPLICE]) : void 0;
+	    spec[COMMAND_SPLICE].forEach(function (args) {
+	      !Array.isArray(args) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): expected spec of %s to be an array of arrays; got %s. Did you forget to wrap your parameters in an array?', COMMAND_SPLICE, spec[COMMAND_SPLICE]) : _prodInvariant('8', COMMAND_SPLICE, spec[COMMAND_SPLICE]) : void 0;
+	      nextValue.splice.apply(nextValue, args);
+	    });
+	  }
+	
+	  if (hasOwnProperty.call(spec, COMMAND_APPLY)) {
+	    !(typeof spec[COMMAND_APPLY] === 'function') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): expected spec of %s to be a function; got %s.', COMMAND_APPLY, spec[COMMAND_APPLY]) : _prodInvariant('9', COMMAND_APPLY, spec[COMMAND_APPLY]) : void 0;
+	    nextValue = spec[COMMAND_APPLY](nextValue);
+	  }
+	
+	  for (var k in spec) {
+	    if (!(ALL_COMMANDS_SET.hasOwnProperty(k) && ALL_COMMANDS_SET[k])) {
+	      nextValue[k] = update(value[k], spec[k]);
+	    }
+	  }
+	
+	  return nextValue;
+	}
+	
+	module.exports = update;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! (webpack)/~/node-libs-browser/~/process/browser.js */ 3)))
+
+/***/ },
+/* 237 */
 /*!************************************!*\
   !*** ./~/redux-thunk/lib/index.js ***!
   \************************************/
@@ -25569,7 +26332,7 @@
 	exports['default'] = thunk;
 
 /***/ },
-/* 232 */
+/* 238 */
 /*!*************************************!*\
   !*** ./~/redux-logger/lib/index.js ***!
   \*************************************/
@@ -25583,11 +26346,11 @@
 	  value: true
 	});
 	
-	var _core = __webpack_require__(/*! ./core */ 233);
+	var _core = __webpack_require__(/*! ./core */ 239);
 	
-	var _helpers = __webpack_require__(/*! ./helpers */ 234);
+	var _helpers = __webpack_require__(/*! ./helpers */ 240);
 	
-	var _defaults = __webpack_require__(/*! ./defaults */ 237);
+	var _defaults = __webpack_require__(/*! ./defaults */ 243);
 	
 	var _defaults2 = _interopRequireDefault(_defaults);
 	
@@ -25690,7 +26453,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 233 */
+/* 239 */
 /*!************************************!*\
   !*** ./~/redux-logger/lib/core.js ***!
   \************************************/
@@ -25703,9 +26466,9 @@
 	});
 	exports.printBuffer = printBuffer;
 	
-	var _helpers = __webpack_require__(/*! ./helpers */ 234);
+	var _helpers = __webpack_require__(/*! ./helpers */ 240);
 	
-	var _diff = __webpack_require__(/*! ./diff */ 235);
+	var _diff = __webpack_require__(/*! ./diff */ 241);
 	
 	var _diff2 = _interopRequireDefault(_diff);
 	
@@ -25834,7 +26597,7 @@
 	}
 
 /***/ },
-/* 234 */
+/* 240 */
 /*!***************************************!*\
   !*** ./~/redux-logger/lib/helpers.js ***!
   \***************************************/
@@ -25861,7 +26624,7 @@
 	var timer = exports.timer = typeof performance !== "undefined" && performance !== null && typeof performance.now === "function" ? performance : Date;
 
 /***/ },
-/* 235 */
+/* 241 */
 /*!************************************!*\
   !*** ./~/redux-logger/lib/diff.js ***!
   \************************************/
@@ -25874,7 +26637,7 @@
 	});
 	exports.default = diffLogger;
 	
-	var _deepDiff = __webpack_require__(/*! deep-diff */ 236);
+	var _deepDiff = __webpack_require__(/*! deep-diff */ 242);
 	
 	var _deepDiff2 = _interopRequireDefault(_deepDiff);
 	
@@ -25960,7 +26723,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 236 */
+/* 242 */
 /*!*********************************************!*\
   !*** ./~/redux-logger/~/deep-diff/index.js ***!
   \*********************************************/
@@ -26392,7 +27155,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 237 */
+/* 243 */
 /*!****************************************!*\
   !*** ./~/redux-logger/lib/defaults.js ***!
   \****************************************/
@@ -26444,6 +27207,38 @@
 	  transformer: undefined
 	};
 	module.exports = exports['default'];
+
+/***/ },
+/* 244 */
+/*!************************************!*\
+  !*** ./~/redux-multi/lib/index.js ***!
+  \************************************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	/**
+	 * Redux dispatch multiple actions
+	 */
+	
+	function multi(_ref) {
+	  var dispatch = _ref.dispatch;
+	
+	  return function (next) {
+	    return function (action) {
+	      return Array.isArray(action) ? action.filter(Boolean).map(dispatch) : next(action);
+	    };
+	  };
+	}
+	
+	/**
+	 * Exports
+	 */
+	
+	exports.default = multi;
 
 /***/ }
 /******/ ]);

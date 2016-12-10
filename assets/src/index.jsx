@@ -11,6 +11,8 @@ import MainFrameComponent from './components/MainFrameComponent';
 
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
+import multi from 'redux-multi'
+
 
 const loggerMiddleware = createLogger()
 
@@ -19,6 +21,7 @@ const loggerMiddleware = createLogger()
 
 let store = createStore(mainReducer,
 applyMiddleware(
+	multi,            // lets us dispatch array of actions
     thunkMiddleware, // lets us dispatch() functions
     loggerMiddleware // neat middleware that logs actions
   )

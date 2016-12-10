@@ -4,6 +4,10 @@ Components need to be pure functions, implement the same as one
 */
 import React, { PropTypes } from 'react'
 import CellComponent from './CellComponent'
+import NewDatasetContainer from '../containers/NewDatasetContainer'
+import NewDashBoardContainer from '../containers/NewDashBoardContainer'
+
+
 
 /*
 MainFrameComponent,
@@ -31,7 +35,13 @@ const MainFrameComponent = ({mainFrame})=>{
     	    	<DashBoardViewComponent data={mainFrame.data}/>
     	    	);
     	}
-    	case "overview":{
+        case "New Dataset":{
+            return <NewDatasetContainer />;
+        }
+        case "New DashBoard":{
+            return <NewDashBoardContainer />;
+        }
+    	case "Overview":{
     		return <div />;
     	}
     	default: return <div />;

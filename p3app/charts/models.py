@@ -1,11 +1,17 @@
 from django.db import models
-from p3app.dash_board.models import Cell
+from p3app.dash_board.models import Cell,DashBoard
 from p3app.data_set.models import DataSet
 from p3app.charts import formulas
 
 class TextData(models.Model):
     cell = models.OneToOneField(Cell,null=True,related_name='textdata')
     description = models.TextField(null=True,blank=True)
+
+    def append_to_dashboard(self,dashboard):
+        ''' Append this object to a dashboard cell'''
+        cell = dashboard.append_cell()
+        self.cell = cell
+        self.save()
 
     def get_serializer(self):
         return 'p3app.charts.serializers','TextDataSerializer'
@@ -27,6 +33,18 @@ class Chart(models.Model):
     ylabel = models.TextField(null=True,blank=True)
     chart_type = models.CharField(max_length=20,
                                   choices=CHART_TYPES)
+
+    def append_to_dashboard(self,dashboard):
+        ''' Append this object to a dashboard cell'''
+        cell = dashboard.append_cell()
+        self.cell = cell
+        self.save()    
+
+    def add_figure(self,formula):
+        ''' Add a new figure tot the chart'''
+        figure = Figure(formula=formula,chart=self)
+        figure.save()
+        return figure
 
     def get_serializer(self):
         return 'p3app.charts.serializers','ChartSerializer'

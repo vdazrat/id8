@@ -57,31 +57,35 @@ class DataSetViewSet(viewsets.ModelViewSet,CSRFExemptMixin):
     def create(self,request):
         ''' create a new dataset instance
         '''
-        csv_file = request.data['csv_file']
+        data = request.data
+        # First check if type of dataset
+        csv_file = None
+        if data.get('dataset-type',None) == 'csv':
+            csv_file = request.data['csv-file']
         # create a serieliazer from the request.data, which contains
         # name, description, source
-        data = request.data
+       
         # create a dataframe cache object
         success = False
         df = None
         if csv_file:
             df = pd.read_csv(csv_file)
         if df is not None:
-            dfcache = DataFrameCache.create_cache(df,data.get('name',None) + "__CACHE__NORM__")
-            dataset = DataSet(name=data.get('name',None),frequency=data.get('frequency',None),description=data.get('description',None),
+            dfcache = DataFrameCache.create_cache(df,data.get('dataset-name',None) + "__CACHE__NORM__")
+            dataset = DataSet(name=data.get('dataset-name',None),frequency=data.get('frequency',None),description=data.get('description',None),
             	              is_csv=(csv_file is not None), source=("api" if csv_file is None else "csv"), data_cache=dfcache)
             try:
                 dataset.full_clean()
                 dataset.save()
                 success = True
             except ValidationError as e:
-                dfache.delete()
+                dfcache.delete()
                 success = False
             
             ser_dataset = DataSetSerializer(dataset,context={'request':request}).data
         if success:
             return Response(ser_dataset, status=status.HTTP_201_CREATED)
         #ser_dataset.is_valid()
-        return Response({'error':'failed to create dataset','msg':e}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error':'failed to create dataset'}, status=status.HTTP_400_BAD_REQUEST)
 
 

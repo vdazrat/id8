@@ -22,7 +22,13 @@
        </div>
        
        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-           <div id="mainframe" ></div>
+           <div id="mainframe" >
+             
+             <!-- add a new component here -->
+             
+             <!-- end new component -->
+
+           </div>
           
        </div>
 
@@ -40,7 +46,7 @@
      	var __INITIAL_DATA__ = {
        sideMenu: {sideMenuItems: [{name:"Overview",subItems:[],icon:"home"},
        	{name:"Dashboards",subItems:[{title:"CPM",api:"http://127.0.0.1:8000/api/dashboard/1/?format=json"},{title:"Bugdb",api:"http://127.0.0.1:8000/api/dashboard/1/?format=json"}],icon:"dashboard",addNew:{title:"New Dashboard"}},
-        {name:"Datasets",subItems:[{title:"testdata"}],icon:"server",addNew:{title:"New Dataset"}},
+        {name:"Datasets",subItems:[{title:"testdata",api:"http://123"}],icon:"server",addNew:{title:"New Dataset"}},
         {name:"Profile",subItems:[],icon:"user"}
 
         ],

@@ -129,6 +129,12 @@ const getC3Data = (data) => {
     			columns:makeC3Hist(JSON.parse(data.figures[0].dataframe))
     		    },{type:'pie'});
     	}
+      case 'bar':{
+
+        return Object.assign({},{
+          columns:makeC3Hist(JSON.parse(data.figures[0].dataframe))
+            },{type:'bar'});
+      }
     }
 }
 

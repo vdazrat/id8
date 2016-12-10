@@ -17,6 +17,14 @@ class DashBoard(models.Model):
         '''
         return self.cell_set.all()
 
+    def append_cell(self):
+        ''' append a cell to dashboard'''
+        
+        # get the max sequence
+        next_seq=self.cells.all().aggregate(models.Max('sequence'))['sequence__max']
+        new_cell = Cell(dashboard=self,sequence=next_seq+1)
+        new_cell.save()
+        return new_cell
 
 class Cell(models.Model):
     dashboard = models.ForeignKey(DashBoard,related_name='cells')

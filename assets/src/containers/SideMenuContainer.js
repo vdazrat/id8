@@ -18,7 +18,7 @@ const mapStateToProps = (state)=> {
           items = state.sideMenu.sideMenuItems;
 	}
     return {
-        sideMenuItems:  items,
+        sideMenuItems:items,
         selected:state.sideMenu.selected
     };
 
@@ -31,7 +31,7 @@ const mapDispatchToProps = (dispatch)=>{
 			
 		},
 		onAdd: (data)=>{
-			dispatch(clickSideMenuItem(data));
+			dispatch(sideMenuClick(data));
 		}
 	};
 }

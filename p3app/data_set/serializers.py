@@ -7,10 +7,15 @@ class DataSetSerializer(serializers.HyperlinkedModelSerializer):
     The data_cache object is translated to a fully qualified url
     '''
     data_cache = serializers.SerializerMethodField('get_data_cache_url')
+    api = serializers.SerializerMethodField()
+
+
+    def get_api(self,obj):
+        return reverse.reverse('api:dataset-detail',args=[obj.id],request=self.context['request'])
 
     def get_data_cache_url(self,obj):
         return reverse.reverse('api:dataframecache-detail',args=[obj.data_cache.id],request=self.context['request'])
 
     class Meta:
         model = DataSet
-        fields = ('id','name','description','frequency','is_csv','source','data_cache')
+        fields = ('id','name','description','frequency','is_csv','source','data_cache','api')
