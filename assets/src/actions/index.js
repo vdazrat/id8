@@ -201,6 +201,61 @@ Cell action creators
 export const FETCH_CELL_REQUEST = 'FETCH_CELL_REQUEST';
 export const FETCH_CELL_SUCCESS = 'FETCH_CELL_SUCCESS';
 export const FETCH_CELL_FAIL = 'FETCH_CELL_FAIL';
+export const APPEND_NEW_CELL = 'APPEND_NEW_CELL';
+export const SUBMIT_CELL_SUCCESS = 'SUBMIT_CELL_SUCCESS';
+export const SUBMIT_CELL_REQUEST = 'SUBMIT_CELL_REQUEST';
+export const SET_CELL_REQUEST = 'SET_CELL_REQUEST';
+
+export const setCellRequest = () => {
+	return{type:SET_CELL_REQUEST};
+}
+export function submitCellRequest(data,action,onSuccess,onFailure){
+/*
+data is form data, action is the url for the post
+*/
+    return function(dispatch){
+        dispatch(setCellRequest());
+
+        // Make a POST request witht the action
+       $.ajax({
+		  url: action,
+		  data: data.formData,
+		  processData: false,
+		  contentType: false,
+		  type: 'POST',
+		  success: onSuccess,
+          error: onFailure
+		});
+    }
+
+}
+
+
+export const submitCellSuccess = (data)=>{
+/*
+  When a new cell is being created, this is the action
+
+  SUBMIT_CELL_SUCCESS and FAIL should set a state, and set this prop 
+  to the container, this way the form fields will automatically get cleared.
+*/
+
+	return [{
+		payload:data.payload,
+		api:data.api,
+		type:APPEND_NEW_CELL
+	},
+	{
+		type:SUBMIT_CELL_SUCCESS
+	}];
+}
+
+export const SUBMIT_CELL_FAIL = 'SUBMIT_CELL_FAIL';
+export const submitCellFail = (data)=>{
+	return{
+		type: SUBMIT_CELL_FAIL
+	};
+}
+
 
 export const requestCell = (data)=>(
         Object.assign({},
@@ -301,3 +356,27 @@ export const submitDashboardFormSuccess = (data)=>(
 	
 }
 ]);
+
+/*
+actions for fetching dataset head
+*/
+
+export const FETCH_HEAD_REQUEST = 'FETCH_HEAD_REQUEST';
+export const FETCH_HEAD_SUCCESS = 'FETCH_HEAD_SUCCESS';
+export const fetchHead = (api)=>{
+
+		return function(dispatch){
+
+		          $.get(api+"?format=json",function(jsonStr){
+		                 dispatch(recieveHead(JSON.parse(jsonStr.replace(/&quot;/g,'"'))));
+		         });
+		   }
+}
+export const recieveHead = (json)=>{
+    return{
+    	type:FETCH_HEAD_SUCCESS,
+    	head:json
+    }
+}
+
+

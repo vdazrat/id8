@@ -67,21 +67,21 @@
 	
 	var _MainFrameContainer2 = _interopRequireDefault(_MainFrameContainer);
 	
-	var _reducers = __webpack_require__(/*! ./reducers */ 234);
+	var _reducers = __webpack_require__(/*! ./reducers */ 237);
 	
 	var _MainFrameComponent = __webpack_require__(/*! ./components/MainFrameComponent */ 227);
 	
 	var _MainFrameComponent2 = _interopRequireDefault(_MainFrameComponent);
 	
-	var _reduxThunk = __webpack_require__(/*! redux-thunk */ 237);
+	var _reduxThunk = __webpack_require__(/*! redux-thunk */ 240);
 	
 	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
 	
-	var _reduxLogger = __webpack_require__(/*! redux-logger */ 238);
+	var _reduxLogger = __webpack_require__(/*! redux-logger */ 241);
 	
 	var _reduxLogger2 = _interopRequireDefault(_reduxLogger);
 	
-	var _reduxMulti = __webpack_require__(/*! redux-multi */ 244);
+	var _reduxMulti = __webpack_require__(/*! redux-multi */ 247);
 	
 	var _reduxMulti2 = _interopRequireDefault(_reduxMulti);
 	
@@ -24762,6 +24762,7 @@
 	});
 	exports.sideMenuClick = sideMenuClick;
 	exports.fetchDashBoard = fetchDashBoard;
+	exports.submitCellRequest = submitCellRequest;
 	exports.fetchCell = fetchCell;
 	exports.submitForm = submitForm;
 	/*
@@ -24949,6 +24950,57 @@
 	var FETCH_CELL_REQUEST = exports.FETCH_CELL_REQUEST = 'FETCH_CELL_REQUEST';
 	var FETCH_CELL_SUCCESS = exports.FETCH_CELL_SUCCESS = 'FETCH_CELL_SUCCESS';
 	var FETCH_CELL_FAIL = exports.FETCH_CELL_FAIL = 'FETCH_CELL_FAIL';
+	var APPEND_NEW_CELL = exports.APPEND_NEW_CELL = 'APPEND_NEW_CELL';
+	var SUBMIT_CELL_SUCCESS = exports.SUBMIT_CELL_SUCCESS = 'SUBMIT_CELL_SUCCESS';
+	var SUBMIT_CELL_REQUEST = exports.SUBMIT_CELL_REQUEST = 'SUBMIT_CELL_REQUEST';
+	var SET_CELL_REQUEST = exports.SET_CELL_REQUEST = 'SET_CELL_REQUEST';
+	
+	var setCellRequest = exports.setCellRequest = function setCellRequest() {
+		return { type: SET_CELL_REQUEST };
+	};
+	function submitCellRequest(data, action, onSuccess, onFailure) {
+		/*
+	 data is form data, action is the url for the post
+	 */
+		return function (dispatch) {
+			dispatch(setCellRequest());
+	
+			// Make a POST request witht the action
+			$.ajax({
+				url: action,
+				data: data.formData,
+				processData: false,
+				contentType: false,
+				type: 'POST',
+				success: onSuccess,
+				error: onFailure
+			});
+		};
+	}
+	
+	var submitCellSuccess = exports.submitCellSuccess = function submitCellSuccess(data) {
+		/*
+	   When a new cell is being created, this is the action
+	 
+	   SUBMIT_CELL_SUCCESS and FAIL should set a state, and set this prop 
+	   to the container, this way the form fields will automatically get cleared.
+	 */
+	
+		return [{
+			payload: data.payload,
+			api: data.api,
+			type: APPEND_NEW_CELL
+		}, {
+			type: SUBMIT_CELL_SUCCESS
+		}];
+	};
+	
+	var SUBMIT_CELL_FAIL = exports.SUBMIT_CELL_FAIL = 'SUBMIT_CELL_FAIL';
+	var submitCellFail = exports.submitCellFail = function submitCellFail(data) {
+		return {
+			type: SUBMIT_CELL_FAIL
+		};
+	};
 	
 	var requestCell = exports.requestCell = function requestCell(data) {
 		return Object.assign({}, { type: FETCH_CELL_REQUEST,
@@ -25047,6 +25099,28 @@
 	
 		}];
 	};
+	
+	/*
+	actions for fetching dataset head
+	*/
+	
+	var FETCH_HEAD_REQUEST = exports.FETCH_HEAD_REQUEST = 'FETCH_HEAD_REQUEST';
+	var FETCH_HEAD_SUCCESS = exports.FETCH_HEAD_SUCCESS = 'FETCH_HEAD_SUCCESS';
+	var fetchHead = exports.fetchHead = function fetchHead(api) {
+	
+		return function (dispatch) {
+	
+			$.get(api + "?format=json", function (jsonStr) {
+				dispatch(recieveHead(JSON.parse(jsonStr.replace(/&quot;/g, '"'))));
+			});
+		};
+	};
+	var recieveHead = exports.recieveHead = function recieveHead(json) {
+		return {
+			type: FETCH_HEAD_SUCCESS,
+			head: json
+		};
+	};
 
 /***/ },
 /* 226 */
@@ -25098,27 +25172,19 @@
 	    value: true
 	});
 	
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; /*
-	                                                                                                                                                                                                                                                                  Component for mainFrame 
-	                                                                                                                                                                                                                                                                  Components need to be pure functions, implement the same as one
-	                                                                                                                                                                                                                                                                  */
-	
-	
 	var _react = __webpack_require__(/*! react */ 1);
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _CellComponent = __webpack_require__(/*! ./CellComponent */ 228);
-	
-	var _CellComponent2 = _interopRequireDefault(_CellComponent);
-	
-	var _NewDatasetContainer = __webpack_require__(/*! ../containers/NewDatasetContainer */ 230);
+	var _NewDatasetContainer = __webpack_require__(/*! ../containers/NewDatasetContainer */ 228);
 	
 	var _NewDatasetContainer2 = _interopRequireDefault(_NewDatasetContainer);
 	
-	var _NewDashBoardContainer = __webpack_require__(/*! ../containers/NewDashBoardContainer */ 232);
+	var _NewDashBoardContainer = __webpack_require__(/*! ../containers/NewDashBoardContainer */ 230);
 	
 	var _NewDashBoardContainer2 = _interopRequireDefault(_NewDashBoardContainer);
+	
+	var _DashBoardComponent = __webpack_require__(/*! ./DashBoardComponent */ 232);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -25133,6 +25199,10 @@
 		    cells: [...]
 		}
 	}
+	*/
+	/*
+	Component for mainFrame 
+	Components need to be pure functions, implement the same as one
 	*/
 	var MainFrameComponent = function MainFrameComponent(_ref) {
 	    var mainFrame = _ref.mainFrame;
@@ -25149,7 +25219,7 @@
 	                        'Fetching...'
 	                    );
 	                }
-	                return _react2.default.createElement(DashBoardViewComponent, { data: mainFrame.data });
+	                return _react2.default.createElement(_DashBoardComponent.DashBoardEditComponent, { data: mainFrame.data });
 	            }
 	        case "New Dataset":
 	            {
@@ -25168,278 +25238,10 @@
 	    }
 	};
 	
-	var DashBoardViewComponent = function DashBoardViewComponent(_ref2) {
-	    var data = _ref2.data;
-	
-	    // Get the data.cells
-	    var cells = data.cells.map(function (cell, i) {
-	        return _react2.default.createElement(_CellComponent2.default, _extends({ key: "cell-" + i, cellKey: "cell-" + i }, cell));
-	    });
-	    return _react2.default.createElement(
-	        'div',
-	        null,
-	        _react2.default.createElement(
-	            'div',
-	            { className: 'page-header' },
-	            _react2.default.createElement(
-	                'h1',
-	                null,
-	                data.title
-	            )
-	        ),
-	        cells
-	    );
-	};
-	
 	exports.default = MainFrameComponent;
 
 /***/ },
 /* 228 */
-/*!*****************************************!*\
-  !*** ./src/components/CellComponent.js ***!
-  \*****************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _react = __webpack_require__(/*! react */ 1);
-	
-	var _react2 = _interopRequireDefault(_react);
-	
-	var _p3toc = __webpack_require__(/*! ../p3toc3 */ 229);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               CellComponent
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               is a component that renders a cell from the state branch state.mainFrame.data.cells
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               cells is defined as a list of shape:
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                cells:[
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {             ///  -->this is a Cell
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          isFetching:false,
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          isInvalidated:false,
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          api:'http://..'
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          payload:{
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             cell_type:'TextData',
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ...
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          }
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        },..
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ]
-	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               */
-	
-	
-	var CellComponent = function CellComponent(_ref) {
-	    var isFetching = _ref.isFetching,
-	        isInvalidated = _ref.isInvalidated,
-	        api = _ref.api,
-	        payload = _ref.payload,
-	        cellKey = _ref.cellKey;
-	
-	
-	    if (isFetching) {
-	        return _react2.default.createElement(CellLoading, null);
-	    } else {
-	        switch (payload.cell_type) {
-	            case "TextData":
-	                {
-	                    return _react2.default.createElement(CellTextData, { data: payload });
-	                }
-	            case "Chart":
-	                {
-	                    return _react2.default.createElement(CellChart, { cellKey: cellKey, data: payload });
-	                }
-	            default:
-	                return _react2.default.createElement('div', null);
-	        }
-	    }
-	};
-	
-	var CellLoading = function CellLoading() {
-	    return _react2.default.createElement(
-	        'div',
-	        { className: 'alert alert-info' },
-	        'loading cell...'
-	    );
-	};
-	
-	var CellTextData = function CellTextData(_ref2) {
-	    var data = _ref2.data;
-	    return _react2.default.createElement(
-	        'div',
-	        { className: 'well' },
-	        _react2.default.createElement(
-	            'p',
-	            null,
-	            data.description
-	        )
-	    );
-	};
-	
-	var CellChart = function (_React$Component) {
-	    _inherits(CellChart, _React$Component);
-	
-	    function CellChart() {
-	        _classCallCheck(this, CellChart);
-	
-	        return _possibleConstructorReturn(this, (CellChart.__proto__ || Object.getPrototypeOf(CellChart)).apply(this, arguments));
-	    }
-	
-	    _createClass(CellChart, [{
-	        key: 'componentDidMount',
-	
-	        /*
-	        This is the where the chart data in a cell is displayed.
-	        This is not a pure function as it needs to call a c3 method as well.
-	        Props recieved by this component is data
-	        data = {
-	        cell_type:'Chart',
-	          "id": 1,
-	          "title": "Simple Chart",
-	          "xlabel": "x axis",
-	          "ylabel": "yaxis",
-	          chart_type:"pie",
-	          "figures": [
-	              {
-	                  "id": 1,
-	                  "dataframe": "{\"bug\":{\"0\":joe,\"1\":joe,\"2\":moe,\"3\":moe,\"4\":curly,\"5\":joe,\"6\":john,\"7\":bon,\"8\":bon,\"9\":hon}}"
-	                
-	              }
-	          ]
-	         }
-	        */
-	        value: function componentDidMount() {
-	            var data = this.props.data;
-	
-	            var c3Data = getC3Data(data);
-	            window.c3Data = c3Data;
-	            var bindId = "#chart-" + this.props.cellKey;
-	
-	            c3.generate({ bindto: bindId,
-	                data: c3Data,
-	                legend: {
-	                    position: 'right'
-	                }
-	
-	            });
-	            /*
-	             c3.generate({
-	            data: {
-	            // iris data from R
-	            bindto:"#chart-cell-1",
-	            columns: [
-	                ['data1', 30],
-	                ['data2', 120],
-	            ],
-	            type : 'pie'}});
-	            */
-	        }
-	    }, {
-	        key: 'render',
-	        value: function render() {
-	            return _react2.default.createElement(
-	                'div',
-	                { className: 'graph-panel' },
-	                _react2.default.createElement(
-	                    'h4',
-	                    { style: { textAlign: 'center', paddingTop: "15px" } },
-	                    this.props.data.title
-	                ),
-	                _react2.default.createElement('div', { id: "chart-" + this.props.cellKey })
-	            );
-	        }
-	    }]);
-	
-	    return CellChart;
-	}(_react2.default.Component);
-	
-	var getC3Data = function getC3Data(data) {
-	    var c3data = {};
-	    // handling just one figure for now
-	    switch (data.chart_type) {
-	
-	        case 'pie':
-	            {
-	
-	                return Object.assign({}, {
-	                    columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
-	                }, { type: 'pie' });
-	            }
-	        case 'bar':
-	            {
-	
-	                return Object.assign({}, {
-	                    columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
-	                }, { type: 'bar' });
-	            }
-	    }
-	};
-	
-	exports.default = CellComponent;
-
-/***/ },
-/* 229 */
-/*!***********************!*\
-  !*** ./src/p3toc3.js ***!
-  \***********************/
-/***/ function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-					value: true
-	});
-	/*
-	Module to convert data from p3 to c3 usable format
-	*/
-	
-	var makeHistogram = function makeHistogram(list) {
-	
-					var i = void 0;
-					var obj = {};
-					for (i = 0; i < list.length; i++) {
-									if (!obj.hasOwnProperty(list[i])) {
-													obj[list[i]] = 1;
-									} else {
-													obj[list[i]] += 1;
-									}
-					}
-	
-					return obj;
-	};
-	
-	var makeC3Hist = exports.makeC3Hist = function makeC3Hist(series) {
-	
-					var key = Object.keys(series)[0];
-					var hist = makeHistogram(objToArr(series[key]));
-					var columns = [];
-					for (var k in hist) {
-									if (hist.hasOwnProperty(k)) {
-													var column = [k, hist[k]];
-													columns.push(column);
-									}
-					}
-					return columns;
-	};
-	
-	var objToArr = exports.objToArr = function objToArr(arrayLike) {
-					var keys = Object.keys(arrayLike);
-					return keys.map(function (i) {
-									return arrayLike[i];
-					});
-	};
-
-/***/ },
-/* 230 */
 /*!***********************************************!*\
   !*** ./src/containers/NewDatasetContainer.js ***!
   \***********************************************/
@@ -25453,7 +25255,7 @@
 	
 	var _reactRedux = __webpack_require__(/*! react-redux */ 204);
 	
-	var _NewDatasetComponent = __webpack_require__(/*! ../components/NewDatasetComponent */ 231);
+	var _NewDatasetComponent = __webpack_require__(/*! ../components/NewDatasetComponent */ 229);
 	
 	var _NewDatasetComponent2 = _interopRequireDefault(_NewDatasetComponent);
 	
@@ -25490,7 +25292,7 @@
 	exports.default = NewDatasetContainer;
 
 /***/ },
-/* 231 */
+/* 229 */
 /*!***********************************************!*\
   !*** ./src/components/NewDatasetComponent.js ***!
   \***********************************************/
@@ -25659,7 +25461,7 @@
 	exports.default = NewDatasetComponent;
 
 /***/ },
-/* 232 */
+/* 230 */
 /*!*************************************************!*\
   !*** ./src/containers/NewDashBoardContainer.js ***!
   \*************************************************/
@@ -25673,7 +25475,7 @@
 	
 	var _reactRedux = __webpack_require__(/*! react-redux */ 204);
 	
-	var _NewDashBoardComponent = __webpack_require__(/*! ../components/NewDashBoardComponent */ 233);
+	var _NewDashBoardComponent = __webpack_require__(/*! ../components/NewDashBoardComponent */ 231);
 	
 	var _NewDashBoardComponent2 = _interopRequireDefault(_NewDashBoardComponent);
 	
@@ -25716,7 +25518,7 @@
 	exports.default = NewDashBoardContainer;
 
 /***/ },
-/* 233 */
+/* 231 */
 /*!*************************************************!*\
   !*** ./src/components/NewDashBoardComponent.js ***!
   \*************************************************/
@@ -25857,7 +25659,1010 @@
 	exports.default = NewDashBoardComponent;
 
 /***/ },
+/* 232 */
+/*!**********************************************!*\
+  !*** ./src/components/DashBoardComponent.js ***!
+  \**********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.DashBoardEditComponent = exports.DashBoardViewComponent = undefined;
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; /*
+	                                                                                                                                                                                                                                                                  Components for rendering a dashboard.
+	                                                                                                                                                                                                                                                                  This has two types, one for read only and the other is editable
+	                                                                                                                                                                                                                                                                  DashBoardViewComponent DashBoardEditComponent resp.
+	                                                                                                                                                                                                                                                                  */
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _CellComponent = __webpack_require__(/*! ./CellComponent */ 233);
+	
+	var _CellComponent2 = _interopRequireDefault(_CellComponent);
+	
+	var _DashBoardModalContainer = __webpack_require__(/*! ../containers/DashBoardModalContainer */ 235);
+	
+	var _DashBoardModalContainer2 = _interopRequireDefault(_DashBoardModalContainer);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var DashBoardViewComponent = exports.DashBoardViewComponent = function DashBoardViewComponent(_ref) {
+	  var data = _ref.data;
+	
+	  // Get the data.cells
+	  var cells = data.cells.map(function (cell, i) {
+	    return _react2.default.createElement(_CellComponent2.default, _extends({ key: "cell-" + i, cellKey: "cell-" + i }, cell));
+	  });
+	  return _react2.default.createElement(
+	    'div',
+	    null,
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'page-header' },
+	      _react2.default.createElement(
+	        'h1',
+	        null,
+	        data.title
+	      )
+	    ),
+	    cells
+	  );
+	};
+	
+	var DashBoardEditComponent = exports.DashBoardEditComponent = function DashBoardEditComponent(_ref2) {
+	  var data = _ref2.data;
+	
+	  // Get the data.cells
+	  var cells = data.cells.map(function (cell, i) {
+	    return _react2.default.createElement(_CellComponent2.default, _extends({ key: "cell-" + i, cellKey: "cell-" + i }, cell));
+	  });
+	  return _react2.default.createElement(
+	    'div',
+	    null,
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'row' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'col-sm-12' },
+	        _react2.default.createElement(DashBoardToolBarComponent, { title: data.title })
+	      ),
+	      _react2.default.createElement(_DashBoardModalContainer2.default, null)
+	    ),
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'row cell-content-row' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'col-sm-12' },
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'cell-container' },
+	          cells
+	        )
+	      )
+	    )
+	  );
+	};
+	
+	/*
+	Edit dashboard header and toolbar component
+	*/
+	var DashBoardToolBarComponent = function DashBoardToolBarComponent(_ref3) {
+	  var title = _ref3.title;
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'dashboard-edit', 'data-spy': 'affix' },
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'page-header zero-bottom' },
+	      _react2.default.createElement(
+	        'h1',
+	        null,
+	        title
+	      ),
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'button-toolbar' },
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'section' },
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'btn-group', role: 'group', 'aria-label': '...' },
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', 'data-keyboard': 'false',
+	                className: 'btn btn-default', 'data-toggle': 'modal',
+	                id: 'text-toolbar', 'data-target': '#cell-modal', 'data-backdrop': 'static' },
+	              '+ T'
+	            ),
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'btn btn-default', 'data-toggle': 'modal',
+	                'data-target': '#g-cell-modal', 'data-keyboard': 'false', id: 'graph-toolbar', 'data-backdrop': 'static' },
+	              '+ G'
+	            ),
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'btn btn-default', 'data-toggle': 'modal', 'data-target': '#head-modal' },
+	              'Show Data'
+	            )
+	          )
+	        )
+	      )
+	    )
+	  );
+	};
+
+/***/ },
+/* 233 */
+/*!*****************************************!*\
+  !*** ./src/components/CellComponent.js ***!
+  \*****************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _p3toc = __webpack_require__(/*! ../p3toc3 */ 234);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               CellComponent
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               is a component that renders a cell from the state branch state.mainFrame.data.cells
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               cells is defined as a list of shape:
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                cells:[
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {             ///  -->this is a Cell
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          isFetching:false,
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          isInvalidated:false,
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          api:'http://..'
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          payload:{
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             cell_type:'TextData',
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ...
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          }
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        },..
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ]
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               */
+	
+	
+	var CellComponent = function CellComponent(_ref) {
+	  var isFetching = _ref.isFetching,
+	      isInvalidated = _ref.isInvalidated,
+	      api = _ref.api,
+	      payload = _ref.payload,
+	      cellKey = _ref.cellKey;
+	
+	
+	  if (isFetching) {
+	    return _react2.default.createElement(CellLoading, null);
+	  } else {
+	    switch (payload.cell_type) {
+	      case "TextData":
+	        {
+	          return _react2.default.createElement(CellTextData, { data: payload });
+	        }
+	      case "Chart":
+	        {
+	          return _react2.default.createElement(CellChart, { cellKey: cellKey, data: payload });
+	        }
+	      default:
+	        return _react2.default.createElement('div', null);
+	    }
+	  }
+	};
+	
+	var CellLoading = function CellLoading() {
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'alert alert-info' },
+	    'loading cell...'
+	  );
+	};
+	
+	/*
+	Editable Cell- CellTextDataEditable
+	*/
+	
+	var CellTextData = function CellTextData(_ref2) {
+	  var data = _ref2.data;
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'cell-container' },
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'well' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'header' },
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'dropdown edit-cell' },
+	          _react2.default.createElement(
+	            'button',
+	            { className: 'close btn btn-default dropdown-toggle',
+	              type: 'button', id: 'dropdownMenu1', 'data-toggle': 'dropdown',
+	              'aria-haspopup': 'true', 'aria-expanded': 'true' },
+	            _react2.default.createElement(
+	              'span',
+	              null,
+	              '\u2026'
+	            )
+	          ),
+	          _react2.default.createElement(
+	            'ul',
+	            { className: 'dropdown-menu dropdown-menu-right', 'aria-labelledby': 'dropdownMenu1' },
+	            _react2.default.createElement(
+	              'li',
+	              null,
+	              _react2.default.createElement(
+	                'a',
+	                { href: '#', 'data-toggle': 'modal', 'data-target': '#cell-modal' },
+	                'Edit'
+	              )
+	            ),
+	            _react2.default.createElement('li', { role: 'separator', className: 'divider' }),
+	            _react2.default.createElement(
+	              'li',
+	              null,
+	              _react2.default.createElement(
+	                'a',
+	                { href: '#' },
+	                'Delete'
+	              )
+	            )
+	          )
+	        )
+	      ),
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'section' },
+	        _react2.default.createElement(
+	          'p',
+	          null,
+	          data.description
+	        )
+	      )
+	    )
+	  );
+	};
+	
+	var CellTextDataViewOnly = function CellTextDataViewOnly(_ref3) {
+	  var data = _ref3.data;
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'well' },
+	    _react2.default.createElement(
+	      'p',
+	      null,
+	      data.description
+	    )
+	  );
+	};
+	
+	var CellChart = function (_React$Component) {
+	  _inherits(CellChart, _React$Component);
+	
+	  function CellChart() {
+	    _classCallCheck(this, CellChart);
+	
+	    return _possibleConstructorReturn(this, (CellChart.__proto__ || Object.getPrototypeOf(CellChart)).apply(this, arguments));
+	  }
+	
+	  _createClass(CellChart, [{
+	    key: 'componentDidMount',
+	
+	    /*
+	    This is the where the chart data in a cell is displayed.
+	    This is not a pure function as it needs to call a c3 method as well.
+	    Props recieved by this component is data
+	    data = {
+	    cell_type:'Chart',
+	      "id": 1,
+	      "title": "Simple Chart",
+	      "xlabel": "x axis",
+	      "ylabel": "yaxis",
+	      chart_type:"pie",
+	      "figures": [
+	          {
+	              "id": 1,
+	              "dataframe": "{\"bug\":{\"0\":joe,\"1\":joe,\"2\":moe,\"3\":moe,\"4\":curly,\"5\":joe,\"6\":john,\"7\":bon,\"8\":bon,\"9\":hon}}"
+	            
+	          }
+	      ]
+	     }
+	    */
+	    value: function componentDidMount() {
+	      var data = this.props.data;
+	
+	      var c3Data = getC3Data(data);
+	      window.c3Data = c3Data;
+	      var bindId = "#chart-" + this.props.cellKey;
+	
+	      c3.generate({ bindto: bindId,
+	        data: c3Data,
+	        legend: {
+	          position: 'right'
+	        }
+	
+	      });
+	      /*
+	       c3.generate({
+	      data: {
+	      // iris data from R
+	      bindto:"#chart-cell-1",
+	      columns: [
+	          ['data1', 30],
+	          ['data2', 120],
+	      ],
+	      type : 'pie'}});
+	      */
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return _react2.default.createElement(
+	        'div',
+	        { className: 'graph-panel' },
+	        _react2.default.createElement(
+	          'h4',
+	          { style: { textAlign: 'center', paddingTop: "15px" } },
+	          this.props.data.title
+	        ),
+	        _react2.default.createElement('div', { id: "chart-" + this.props.cellKey })
+	      );
+	    }
+	  }]);
+	
+	  return CellChart;
+	}(_react2.default.Component);
+	
+	var getC3Data = function getC3Data(data) {
+	  var c3data = {};
+	  // handling just one figure for now
+	  switch (data.chart_type) {
+	
+	    case 'pie':
+	      {
+	
+	        return Object.assign({}, {
+	          columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
+	        }, { type: 'pie' });
+	      }
+	    case 'bar':
+	      {
+	
+	        return Object.assign({}, {
+	          columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
+	        }, { type: 'bar' });
+	      }
+	  }
+	};
+	
+	exports.default = CellComponent;
+
+/***/ },
 /* 234 */
+/*!***********************!*\
+  !*** ./src/p3toc3.js ***!
+  \***********************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	/*
+	Module to convert data from p3 to c3 usable format
+	*/
+	
+	var makeHistogram = function makeHistogram(list) {
+	
+	    var i = void 0;
+	    var obj = {};
+	    for (i = 0; i < list.length; i++) {
+	        if (!obj.hasOwnProperty(list[i])) {
+	            obj[list[i]] = 1;
+	        } else {
+	            obj[list[i]] += 1;
+	        }
+	    }
+	
+	    return obj;
+	};
+	
+	var makeC3Hist = exports.makeC3Hist = function makeC3Hist(series) {
+	
+	    var key = Object.keys(series)[0];
+	    var hist = makeHistogram(objToArr(series[key]));
+	    var columns = [];
+	    for (var k in hist) {
+	        if (hist.hasOwnProperty(k)) {
+	            var column = [k, hist[k]];
+	            columns.push(column);
+	        }
+	    }
+	    return columns;
+	};
+	
+	var objToArr = exports.objToArr = function objToArr(arrayLike) {
+	    var keys = Object.keys(arrayLike);
+	    return keys.map(function (i) {
+	        return arrayLike[i];
+	    });
+	};
+	
+	var transformPanda = exports.transformPanda = function transformPanda(pandaObj) {
+	    var shadow = Object.assign({}, pandaObj);
+	    for (var i in shadow) {
+	        shadow[i] = objToArr(shadow[i]);
+	    }
+	    return shadow;
+	};
+
+/***/ },
+/* 235 */
+/*!***************************************************!*\
+  !*** ./src/containers/DashBoardModalContainer.js ***!
+  \***************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _reactRedux = __webpack_require__(/*! react-redux */ 204);
+	
+	var _DashBoardModalComponent = __webpack_require__(/*! ../components/DashBoardModalComponent */ 236);
+	
+	var _DashBoardModalComponent2 = _interopRequireDefault(_DashBoardModalComponent);
+	
+	var _actions = __webpack_require__(/*! ../actions */ 225);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var mapStateToProps = function mapStateToProps(state) {
+	
+		return {
+			dashboard: state.mainFrame.data.api,
+			head: state.mainFrame.head
+		};
+	};
+	
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	
+		return {
+			onFormSubmit: function onFormSubmit(data, action, onSuccess, onFailure) {
+				dispatch((0, _actions.submitCellRequest)(data, action, onSuccess, onFailure));
+			},
+			onSuccess: function onSuccess(data) {
+				dispatch((0, _actions.submitCellSuccess)(data));
+			},
+			onFailure: function onFailure(response) {
+				dispatch((0, _actions.submitCellFail)(response));
+			},
+			onLoad: function onLoad() {
+				$('.modal').on('hidden.bs.modal', function () {
+					$('.submit-error').hide();
+					var form = $(this).find('form')[0];
+					if (form !== undefined) {
+						form.reset();
+					}
+				});
+			},
+			fetchHead: function fetchHead(api) {
+				dispatch((0, _actions.fetchHead)(api));
+			}
+		};
+	};
+	
+	var DashBoardModalContainer = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(_DashBoardModalComponent2.default);
+	
+	exports.default = DashBoardModalContainer;
+
+/***/ },
+/* 236 */
+/*!***************************************************!*\
+  !*** ./src/components/DashBoardModalComponent.js ***!
+  \***************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _p3toc = __webpack_require__(/*! ../p3toc3 */ 234);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               Modals for edit dashboards
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               */
+	
+	
+	var DashBoardModalComponent = function (_React$Component) {
+	  _inherits(DashBoardModalComponent, _React$Component);
+	
+	  function DashBoardModalComponent() {
+	    _classCallCheck(this, DashBoardModalComponent);
+	
+	    return _possibleConstructorReturn(this, (DashBoardModalComponent.__proto__ || Object.getPrototypeOf(DashBoardModalComponent)).apply(this, arguments));
+	  }
+	
+	  _createClass(DashBoardModalComponent, [{
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      /* Initialize the onLoad method here, which takes care of the modal events*/
+	      this.props.onLoad();
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	
+	      return _react2.default.createElement(
+	        'div',
+	        { className: 'container-dashboard-modals' },
+	        _react2.default.createElement(TextDataModal, this.props),
+	        _react2.default.createElement(GraphModal, this.props),
+	        _react2.default.createElement(ShowDataModal, { head: this.props.head, dashboard: this.props.dashboard, fetchHead: this.props.fetchHead })
+	      );
+	    }
+	  }]);
+	
+	  return DashBoardModalComponent;
+	}(_react2.default.Component);
+	
+	/*
+	TextData modal
+	*/
+	
+	
+	var TextDataModal = function TextDataModal(_ref) {
+	  var dashboard = _ref.dashboard,
+	      onFormSubmit = _ref.onFormSubmit,
+	      onSuccess = _ref.onSuccess,
+	      onFailure = _ref.onFailure;
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'modal fade', id: 'cell-modal', tabIndex: '-1', role: 'dialog',
+	      'aria-labelledby': 'myModalLabel', 'aria-hidden': 'true' },
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'modal-dialog', role: 'document' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'modal-content' },
+	        _react2.default.createElement(
+	          'form',
+	          { id: 'new-text-cell', action: '/api/cell/',
+	            onSubmit: function () {
+	              var fdFields = { 'type': 'TextData',
+	                'dashboard': dashboard };
+	
+	              return getOnSubmitFunction("#new-text-cell", "#cell-modal", "#save-text-cell", fdFields, onFormSubmit, onSuccess, onFailure);
+	            }() },
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-header' },
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'close cancel-text', 'data-dismiss': 'modal', 'aria-label': 'Close' },
+	              _react2.default.createElement(
+	                'span',
+	                { 'aria-hidden': 'true' },
+	                '\xD7'
+	              )
+	            ),
+	            _react2.default.createElement(
+	              'h4',
+	              { className: 'modal-title', id: 'myModalLabel' },
+	              'Add new TextData cell',
+	              _react2.default.createElement(
+	                'span',
+	                { className: 'submit-error', style: { color: 'red', display: 'none' } },
+	                '\xA0Failed.'
+	              )
+	            )
+	          ),
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-body' },
+	            _react2.default.createElement('textarea', { className: 'form-control', rows: '5', id: 'description', name: 'description' })
+	          ),
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-footer' },
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'btn btn-secondary cancel', 'data-dismiss': 'modal' },
+	              'Close'
+	            ),
+	            _react2.default.createElement(
+	              'button',
+	              { id: 'save-text-cell', type: 'submit', className: 'btn btn-primary' },
+	              'Save'
+	            )
+	          )
+	        )
+	      )
+	    )
+	  );
+	};
+	
+	/*
+	Graph modal
+	*/
+	
+	var GraphModal = function GraphModal(_ref2) {
+	  var dashboard = _ref2.dashboard,
+	      onFormSubmit = _ref2.onFormSubmit,
+	      onSuccess = _ref2.onSuccess,
+	      onFailure = _ref2.onFailure;
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'modal fade', id: 'g-cell-modal', tabIndex: '-1', role: 'dialog',
+	      'aria-labelledby': 'myModalLabel', 'aria-hidden': 'true' },
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'modal-dialog', role: 'document' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'modal-content' },
+	        _react2.default.createElement(
+	          'form',
+	          { id: 'new-chart-cell', action: '/api/cell/',
+	            onSubmit: function () {
+	              var fdFields = { 'type': 'Chart',
+	                'dashboard': dashboard };
+	
+	              return getOnSubmitFunction("#new-chart-cell", "#g-cell-modal", "#save-chart-cell", fdFields, onFormSubmit, onSuccess, onFailure);
+	            }() },
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-header' },
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'close', 'data-dismiss': 'modal', 'aria-label': 'Close' },
+	              _react2.default.createElement(
+	                'span',
+	                { 'aria-hidden': 'true' },
+	                '\xD7'
+	              )
+	            ),
+	            _react2.default.createElement(
+	              'h4',
+	              { className: 'modal-title', id: 'myModalLabel' },
+	              'Add new Graph cell'
+	            )
+	          ),
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'section' },
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'col-sm-6' },
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'row' },
+	                _react2.default.createElement(
+	                  'div',
+	                  { className: 'col-sm-12' },
+	                  _react2.default.createElement(
+	                    'label',
+	                    { htmlFor: 'graph-type' },
+	                    'Graph Type'
+	                  ),
+	                  _react2.default.createElement(
+	                    'select',
+	                    { className: 'form-control', name: 'chart_type' },
+	                    _react2.default.createElement(
+	                      'option',
+	                      { value: 'pie' },
+	                      'Pie'
+	                    ),
+	                    _react2.default.createElement(
+	                      'option',
+	                      { value: 'donut' },
+	                      'Donut'
+	                    ),
+	                    _react2.default.createElement(
+	                      'option',
+	                      { value: 'bar' },
+	                      'Bar'
+	                    ),
+	                    _react2.default.createElement(
+	                      'option',
+	                      { value: 'scatter' },
+	                      'Scatter'
+	                    ),
+	                    _react2.default.createElement(
+	                      'option',
+	                      { value: 'line' },
+	                      'Line'
+	                    )
+	                  ),
+	                  _react2.default.createElement(
+	                    'label',
+	                    { htmlFor: 'title' },
+	                    'Title'
+	                  ),
+	                  _react2.default.createElement('input', { className: 'form-control', type: 'text', name: 'title' }),
+	                  _react2.default.createElement(
+	                    'label',
+	                    { htmlFor: 'formula' },
+	                    'Formula'
+	                  ),
+	                  _react2.default.createElement('input', { className: 'form-control', type: 'text', name: 'formula' }),
+	                  _react2.default.createElement(
+	                    'label',
+	                    { htmlFor: 'x-label' },
+	                    'Xaxis'
+	                  ),
+	                  _react2.default.createElement('input', { className: 'form-control', type: 'text', name: 'xlabel' }),
+	                  _react2.default.createElement(
+	                    'label',
+	                    { htmlFor: 'y-axis' },
+	                    'Yaxis'
+	                  ),
+	                  _react2.default.createElement('input', { className: 'form-control', type: 'text', id: 'ylabel' }),
+	                  _react2.default.createElement(
+	                    'button',
+	                    { type: 'button', className: ' form-control btn btn-success' },
+	                    'Preview'
+	                  )
+	                )
+	              )
+	            ),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'col-sm-6' },
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'row' },
+	                _react2.default.createElement(
+	                  'div',
+	                  { className: 'col-sm-12' },
+	                  _react2.default.createElement(
+	                    'label',
+	                    null,
+	                    'Graph Preview'
+	                  ),
+	                  _react2.default.createElement('div', { className: 'well', style: { minHeight: "200px" } })
+	                )
+	              )
+	            )
+	          ),
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-footer' },
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'btn btn-secondary cancel', 'data-dismiss': 'modal' },
+	              'Close'
+	            ),
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'submit', id: 'save-chart-cell',
+	                className: 'btn btn-primary' },
+	              'Save changes'
+	            )
+	          )
+	        )
+	      )
+	    )
+	  );
+	};
+	
+	/*
+	show data modal
+	*/
+	
+	var ShowDataModal = function (_React$Component2) {
+	  _inherits(ShowDataModal, _React$Component2);
+	
+	  function ShowDataModal() {
+	    _classCallCheck(this, ShowDataModal);
+	
+	    return _possibleConstructorReturn(this, (ShowDataModal.__proto__ || Object.getPrototypeOf(ShowDataModal)).apply(this, arguments));
+	  }
+	
+	  _createClass(ShowDataModal, [{
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      /*Fetch the data head from here*/
+	      this.props.fetchHead(this.props.dashboard + 'head/');
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	
+	      return _react2.default.createElement(
+	        'div',
+	        { className: 'modal fade', id: 'head-modal', tabIndex: '-1', role: 'dialog' },
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'modal-dialog', role: 'document' },
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-content' },
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'modal-header' },
+	              _react2.default.createElement(
+	                'button',
+	                { type: 'button', className: 'close', 'data-dismiss': 'modal', 'aria-label': 'Close' },
+	                _react2.default.createElement(
+	                  'span',
+	                  { 'aria-hidden': 'true' },
+	                  '\xD7'
+	                )
+	              ),
+	              _react2.default.createElement(
+	                'h4',
+	                { className: 'modal-title', id: 'myModalLabel' },
+	                'Dataset Header'
+	              )
+	            ),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'modal-body' },
+	              _react2.default.createElement(DatasetHead, { dataset: this.props.head })
+	            )
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return ShowDataModal;
+	}(_react2.default.Component);
+	
+	/*
+	Component returns a dataset table given a dataset
+	*/
+	
+	
+	var DatasetHead = function DatasetHead(_ref3) {
+	  var dataset = _ref3.dataset;
+	
+	  // return empty div if dataset is undefined
+	  if (dataset === undefined) {
+	    return _react2.default.createElement('div', null);
+	  }
+	  // convert dataset to usable form
+	  var shadow = (0, _p3toc.transformPanda)(dataset);
+	  // form the table header
+	  var head = _react2.default.createElement(
+	    'tr',
+	    null,
+	    _react2.default.createElement(
+	      'th',
+	      null,
+	      '#'
+	    ),
+	    Object.keys(shadow).map(function (v, i) {
+	      return _react2.default.createElement(
+	        'th',
+	        { key: "head-" + i },
+	        v
+	      );
+	    })
+	  );
+	  // Next form the body of the table row by row         
+	  var tbody = [];
+	  var dataKeys = Object.keys(shadow); // all the keys of the dataset
+	  for (var i = 0; i < shadow[dataKeys[0]].length; i++) {
+	    // for the length of each series
+	    var rows = [];
+	    rows.push(_react2.default.createElement(
+	      'th',
+	      { scope: 'row', key: "scope-" + i },
+	      i + 1
+	    ));
+	    for (var j = 0; j < dataKeys.length; j++) {
+	      // form the table row wise from series format
+	      rows.push(_react2.default.createElement(
+	        'td',
+	        { key: "col-" + i + "-" + j },
+	        shadow[dataKeys[j]][i]
+	      ));
+	    }
+	    tbody.push(_react2.default.createElement(
+	      'tr',
+	      { key: "row-" + i },
+	      rows
+	    ));
+	  }
+	  return _react2.default.createElement(
+	    'table',
+	    { className: 'table table-hover' },
+	    _react2.default.createElement(
+	      'thead',
+	      null,
+	      head
+	    ),
+	    _react2.default.createElement(
+	      'tbody',
+	      null,
+	      tbody
+	    )
+	  );
+	};
+	
+	function getOnSubmitFunction(form, modal, saveCellButton, fdFields, onFormSubmit, onSuccess, onFailure) {
+	  /*
+	  Function returns a fuction to be used for the onSubmit handler
+	  */
+	  return function (e) {
+	    e.preventDefault();
+	    // do a direct DOM manipulation here,
+	    // I know it's a hack, but the other option is too lengthy
+	    // to achieve a very small effect
+	    var fd = new FormData($(form)[0]);
+	    for (var field in fdFields) {
+	      fd.append(field, fdFields[field]);
+	    }
+	    $(saveCellButton).text("Submitting");
+	    $(saveCellButton).addClass('disabled').attr('disabled', true);
+	    $(".cancel").addClass('disabled').attr('disabled', true);
+	
+	    onFormSubmit({ formData: fd }, $(form).attr('action'), function (data) {
+	      $(saveCellButton).text("Save");
+	      $(saveCellButton).removeClass('disabled').attr('disabled', false);
+	      $(".cancel").removeClass('disabled').attr('disabled', false);
+	      $(modal).modal('toggle');
+	      onSuccess(data);
+	    }
+	
+	    // request has failed
+	    , function (data) {
+	      $(saveCellButton).text("Save");
+	      $(saveCellButton).removeClass('disabled').attr('disabled', false);
+	      $(".cancel").removeClass('disabled').attr('disabled', false);
+	      $(".submit-error").show();
+	      onFailure(data);
+	    });
+	  };
+	}
+	exports.default = DashBoardModalComponent;
+
+/***/ },
+/* 237 */
 /*!*******************************!*\
   !*** ./src/reducers/index.js ***!
   \*******************************/
@@ -25874,7 +26679,7 @@
 	
 	var _redux = __webpack_require__(/*! redux */ 183);
 	
-	var _reactAddonsUpdate = __webpack_require__(/*! react-addons-update */ 235);
+	var _reactAddonsUpdate = __webpack_require__(/*! react-addons-update */ 238);
 	
 	var _reactAddonsUpdate2 = _interopRequireDefault(_reactAddonsUpdate);
 	
@@ -25899,9 +26704,10 @@
 	// dashboard actions
 	// cell actions
 	// form actions
-	
-	
 	// datasetform actions
+	
+	
+	// head actions
 	
 	
 	// only for debugging purposes, remove later
@@ -26044,11 +26850,12 @@
 	            }
 	        case _actions.FETCH_DASHBOARD_SUCCESS:
 	            {
-	                console.log(action);
+	
 	                return Object.assign({}, { displaying: action.displaying,
 	                    data: action.data }, { isFetching: false });
 	            }
 	
+	        case _actions.APPEND_NEW_CELL:
 	        case _actions.FETCH_CELL_REQUEST:
 	        case _actions.FETCH_CELL_SUCCESS:
 	            {
@@ -26096,6 +26903,11 @@
 	                return Object.assign({}, state, { isFetching: false, submitted: true, success: true });
 	            }
 	
+	        case _actions.FETCH_HEAD_SUCCESS:
+	            {
+	                return Object.assign({}, state, { head: Object.assign({}, action.head) });
+	            }
+	
 	        default:
 	            return state;
 	
@@ -26117,6 +26929,12 @@
 	
 	    switch (action.type) {
 	
+	        case _actions.APPEND_NEW_CELL:
+	            {
+	                return (0, _reactAddonsUpdate2.default)(state, { $push: [{ isFetching: false,
+	                        payload: action.payload,
+	                        api: action.api }] });
+	            }
 	        case _actions.FETCH_CELL_REQUEST:
 	        case _actions.FETCH_CELL_SUCCESS:
 	            {
@@ -26148,6 +26966,7 @@
 	                    api: action.api,
 	                    payload: action.payload };
 	            }
+	
 	        default:
 	            return state;
 	    }
@@ -26176,16 +26995,16 @@
 	};
 
 /***/ },
-/* 235 */
+/* 238 */
 /*!****************************************!*\
   !*** ./~/react-addons-update/index.js ***!
   \****************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(/*! react/lib/update */ 236);
+	module.exports = __webpack_require__(/*! react/lib/update */ 239);
 
 /***/ },
-/* 236 */
+/* 239 */
 /*!*******************************!*\
   !*** ./~/react/lib/update.js ***!
   \*******************************/
@@ -26305,7 +27124,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! (webpack)/~/node-libs-browser/~/process/browser.js */ 3)))
 
 /***/ },
-/* 237 */
+/* 240 */
 /*!************************************!*\
   !*** ./~/redux-thunk/lib/index.js ***!
   \************************************/
@@ -26336,7 +27155,7 @@
 	exports['default'] = thunk;
 
 /***/ },
-/* 238 */
+/* 241 */
 /*!*************************************!*\
   !*** ./~/redux-logger/lib/index.js ***!
   \*************************************/
@@ -26350,11 +27169,11 @@
 	  value: true
 	});
 	
-	var _core = __webpack_require__(/*! ./core */ 239);
+	var _core = __webpack_require__(/*! ./core */ 242);
 	
-	var _helpers = __webpack_require__(/*! ./helpers */ 240);
+	var _helpers = __webpack_require__(/*! ./helpers */ 243);
 	
-	var _defaults = __webpack_require__(/*! ./defaults */ 243);
+	var _defaults = __webpack_require__(/*! ./defaults */ 246);
 	
 	var _defaults2 = _interopRequireDefault(_defaults);
 	
@@ -26457,7 +27276,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 239 */
+/* 242 */
 /*!************************************!*\
   !*** ./~/redux-logger/lib/core.js ***!
   \************************************/
@@ -26470,9 +27289,9 @@
 	});
 	exports.printBuffer = printBuffer;
 	
-	var _helpers = __webpack_require__(/*! ./helpers */ 240);
+	var _helpers = __webpack_require__(/*! ./helpers */ 243);
 	
-	var _diff = __webpack_require__(/*! ./diff */ 241);
+	var _diff = __webpack_require__(/*! ./diff */ 244);
 	
 	var _diff2 = _interopRequireDefault(_diff);
 	
@@ -26601,7 +27420,7 @@
 	}
 
 /***/ },
-/* 240 */
+/* 243 */
 /*!***************************************!*\
   !*** ./~/redux-logger/lib/helpers.js ***!
   \***************************************/
@@ -26628,7 +27447,7 @@
 	var timer = exports.timer = typeof performance !== "undefined" && performance !== null && typeof performance.now === "function" ? performance : Date;
 
 /***/ },
-/* 241 */
+/* 244 */
 /*!************************************!*\
   !*** ./~/redux-logger/lib/diff.js ***!
   \************************************/
@@ -26641,7 +27460,7 @@
 	});
 	exports.default = diffLogger;
 	
-	var _deepDiff = __webpack_require__(/*! deep-diff */ 242);
+	var _deepDiff = __webpack_require__(/*! deep-diff */ 245);
 	
 	var _deepDiff2 = _interopRequireDefault(_deepDiff);
 	
@@ -26727,7 +27546,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 242 */
+/* 245 */
 /*!*********************************************!*\
   !*** ./~/redux-logger/~/deep-diff/index.js ***!
   \*********************************************/
@@ -27159,7 +27978,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 243 */
+/* 246 */
 /*!****************************************!*\
   !*** ./~/redux-logger/lib/defaults.js ***!
   \****************************************/
@@ -27213,7 +28032,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 244 */
+/* 247 */
 /*!************************************!*\
   !*** ./~/redux-multi/lib/index.js ***!
   \************************************/

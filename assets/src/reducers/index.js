@@ -18,9 +18,11 @@ import { ADD_SIDEMENU_SUBITEM,CLICK_SIDEMENU_ITEM} from '../actions'
 import { FETCH_DASHBOARD_REQUEST,FETCH_DASHBOARD_SUCCESS,SUBMIT_DASHBOARD_FORM_SUCCESS } from '../actions' // dashboard actions
 import { FETCH_OVERVIEW,FETCH_NEW_DATASET_FORM ,FETCH_NEW_DASHBOARD_FORM} from '../actions'
 
-import { FETCH_CELL_REQUEST, FETCH_CELL_SUCCESS} from '../actions' // cell actions
+import { FETCH_CELL_REQUEST, FETCH_CELL_SUCCESS,APPEND_NEW_CELL,SET_CELL_REQUEST} from '../actions' // cell actions
 import { SUBMIT_FORM_REQUEST,SUBMIT_FORM_SUCCESS,SUBMIT_FORM_FAIL} from '../actions' // form actions
 import { SUBMIT_DATASET_FORM_SUCCESS} from '../actions' // datasetform actions
+import { FETCH_HEAD_SUCCESS} from '../actions' // head actions
+
 
 
 
@@ -163,18 +165,21 @@ const mainFrame = (state,action)=>{
 
         }
         case FETCH_DASHBOARD_SUCCESS:{
-             console.log(action);
+            
             return Object.assign({},{displaying:action.displaying,
                                     data:action.data},
                                     {isFetching:false});
         }
 
+      
+        case APPEND_NEW_CELL:
         case FETCH_CELL_REQUEST:
         case FETCH_CELL_SUCCESS:{
              return(Object.assign({},state,
                 {data:Object.assign({},state.data,{cells:cells(state.data.cells,action)})
             }));
         }
+
 
         case FETCH_OVERVIEW:{
              return Object.assign({},{displaying:action.displaying},{isFetching:false});
@@ -208,6 +213,10 @@ const mainFrame = (state,action)=>{
              return Object.assign({},state,{isFetching:false,submitted:true,success:true});
         }
 
+        case FETCH_HEAD_SUCCESS:{
+             return Object.assign({},state,{head:Object.assign({},action.head)});
+        }
+
         default: return state;
 
     }
@@ -225,7 +234,15 @@ cells = {
 
 const cells = (state=[],action) =>{
     switch(action.type){
-
+         
+        case APPEND_NEW_CELL:{
+            return update(state,{$push:[
+                             {isFetching:false,
+                              payload:action.payload,
+                              api:action.api}
+                             ]});
+            
+        }
         case FETCH_CELL_REQUEST:
         case FETCH_CELL_SUCCESS:{
              return state.map((c)=> cell(c,action));
@@ -254,6 +271,7 @@ const cell = (state,action) => {
                          payload:action.payload};
 
             }
+            
             default: return state;
         }
 

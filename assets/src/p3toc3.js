@@ -37,3 +37,11 @@ export const objToArr = (arrayLike) =>{
     return keys.map((i)=>(arrayLike[i]));
 
 }
+
+export const transformPanda = (pandaObj) =>{
+     let shadow = Object.assign({},pandaObj);
+     for(let i in shadow){
+     	shadow[i] = objToArr(shadow[i])
+     }
+     return shadow;
+}

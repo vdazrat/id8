@@ -239,3 +239,25 @@ Styles for the sidebar manu
 /*
 End sidebar menu styles
 */
+
+/*
+Some styles for the mainframe dashboards and cells
+*/
+.cell-container.edit-cell{
+      float:right;
+     }
+     .dashboard-edit{
+      z-index:100;
+      background-color:white;
+      width:100%;
+      top:50px;
+      position:fixed;
+     }
+     .zero-bottom{
+       margin-bottom: 0;
+       padding-bottom: 1px;
+     }
+
+     .cell-content-row{
+        margin-top:100px;
+     }

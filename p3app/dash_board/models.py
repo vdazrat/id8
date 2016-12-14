@@ -43,6 +43,21 @@ class Cell(models.Model):
             raise DashBoardException("Cell data with id %d assosiated with multiple instances of same type" %self.id)
         return related_qs[0][0]
 
+    @classmethod
+    def get_related_model(cls,name):
+        ''' Given a name, get the related model that matches the name
+        '''
+        c=[ f.related_model for f in cls._meta.get_fields()
+               if (f.one_to_one)
+               and f.related_model.__name__ == name
+          ]
+        # There should be one and only one..
+        if len(c) != 1:
+            return None
+        return c[0]
+
+
+        
  
 class DashBoardException(Exception):
     def __init__(self,arg):

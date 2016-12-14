@@ -45,11 +45,40 @@ const CellLoading = ()=>(
      <div className="alert alert-info">loading cell...</div>
 	)
 
+/*
+Editable Cell- CellTextDataEditable
+*/
+
 const CellTextData = ({data})=>(
+      <div className="cell-container">
+        <div className="well">
+          <div className="header">
+            <div className="dropdown edit-cell">
+                        <button className="close btn btn-default dropdown-toggle" 
+                           type="button" id="dropdownMenu1" data-toggle="dropdown" 
+                                   aria-haspopup="true" aria-expanded="true">
+                          <span >&hellip;</span>
+                        </button>
+                        <ul className="dropdown-menu dropdown-menu-right"  aria-labelledby="dropdownMenu1">
+                          <li><a href="#"  data-toggle="modal" data-target="#cell-modal">Edit</a></li>
+                          <li role="separator" className="divider"></li>
+                          <li><a href="#">Delete</a></li>
+                        </ul>
+              </div>
+          </div>
+           <div className="section">
+              <p>{data.description}</p>
+           </div>
+         </div>
+      </div>
+	)
+
+
+const CellTextDataViewOnly = ({data})=>(
         <div className="well">
       <p>{data.description}</p>
       </div>
-	)
+  )
 
 
 class CellChart extends React.Component{
