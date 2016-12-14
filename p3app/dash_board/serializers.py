@@ -13,14 +13,18 @@ class DashBoardSerializer(serializers.HyperlinkedModelSerializer):
     '''
     dataset = serializers.SerializerMethodField('get_data_set_url')
     cells = serializers.HyperlinkedRelatedField(view_name='api:cell-detail',many=True,read_only=True)
+    api = serializers.SerializerMethodField()
 
     def get_data_set_url(self,obj):
         return reverse.reverse('api:dataset-detail',args=[obj.dataset.id],request=self.context['request'])
 
+    def get_api(self,obj):
+        return reverse.reverse('api:dashboard-detail',args=[obj.id],request=self.context['request'])
+
 
     class Meta:
         model = DashBoard
-        fields = ('id','title','dataset','cells')
+        fields = ('id','title','dataset','cells','api')
 
 class CellSerializer(serializers.ModelSerializer):
 

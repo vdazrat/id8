@@ -67,25 +67,30 @@
 	
 	var _MainFrameContainer2 = _interopRequireDefault(_MainFrameContainer);
 	
-	var _reducers = __webpack_require__(/*! ./reducers */ 230);
+	var _reducers = __webpack_require__(/*! ./reducers */ 237);
 	
 	var _MainFrameComponent = __webpack_require__(/*! ./components/MainFrameComponent */ 227);
 	
 	var _MainFrameComponent2 = _interopRequireDefault(_MainFrameComponent);
 	
-	var _reduxThunk = __webpack_require__(/*! redux-thunk */ 231);
+	var _reduxThunk = __webpack_require__(/*! redux-thunk */ 240);
 	
 	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
 	
-	var _reduxLogger = __webpack_require__(/*! redux-logger */ 232);
+	var _reduxLogger = __webpack_require__(/*! redux-logger */ 241);
 	
 	var _reduxLogger2 = _interopRequireDefault(_reduxLogger);
+	
+	var _reduxMulti = __webpack_require__(/*! redux-multi */ 247);
+	
+	var _reduxMulti2 = _interopRequireDefault(_reduxMulti);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var loggerMiddleware = (0, _reduxLogger2.default)();
 	
-	var store = (0, _redux.createStore)(_reducers.mainReducer, (0, _redux.applyMiddleware)(_reduxThunk2.default, // lets us dispatch() functions
+	var store = (0, _redux.createStore)(_reducers.mainReducer, (0, _redux.applyMiddleware)(_reduxMulti2.default, // lets us dispatch array of actions
+	_reduxThunk2.default, // lets us dispatch() functions
 	loggerMiddleware // neat middleware that logs actions
 	));
 	// just to test functions, remove later.
@@ -93,14 +98,14 @@
 	window.store = store;
 	
 	(0, _reactDom.render)(_react2.default.createElement(
-	    _reactRedux.Provider,
-	    { store: store },
-	    _react2.default.createElement(_SideMenuContainer2.default, null)
+	  _reactRedux.Provider,
+	  { store: store },
+	  _react2.default.createElement(_SideMenuContainer2.default, null)
 	), document.getElementById('sidemenu'));
 	(0, _reactDom.render)(_react2.default.createElement(
-	    _reactRedux.Provider,
-	    { store: store },
-	    _react2.default.createElement(_MainFrameContainer2.default, null)
+	  _reactRedux.Provider,
+	  { store: store },
+	  _react2.default.createElement(_MainFrameContainer2.default, null)
 	), document.getElementById('mainframe'));
 
 /***/ },
@@ -24543,6 +24548,9 @@
 		return {
 			onClick: function onClick(data) {
 				dispatch((0, _actions.sideMenuClick)(data));
+			},
+			onAdd: function onAdd(data) {
+				dispatch((0, _actions.sideMenuClick)(data));
 			}
 		};
 	};
@@ -24583,7 +24591,8 @@
 	var SideMenuComponent = function SideMenuComponent(_ref) {
 	  var sideMenuItems = _ref.sideMenuItems,
 	      selected = _ref.selected,
-	      onClick = _ref.onClick;
+	      onClick = _ref.onClick,
+	      onAdd = _ref.onAdd;
 	
 	  /*
 	  This is the main side menu component, which consists of the entire side nav menu:
@@ -24594,7 +24603,7 @@
 	  */
 	  var itemCounter = 0;
 	  var sideItems = sideMenuItems.map(function (sideItem) {
-	    return _react2.default.createElement(SideMenuItemName, _extends({ key: itemCounter, selected: selected, onClick: onClick }, sideItem, { keyVal: itemCounter++ }));
+	    return _react2.default.createElement(SideMenuItemName, _extends({ key: itemCounter, selected: selected, onClick: onClick, onAdd: onAdd }, sideItem, { keyVal: itemCounter++ }));
 	  });
 	
 	  return _react2.default.createElement(
@@ -24616,9 +24625,12 @@
 	var SideMenuItemName = function SideMenuItemName(_ref2) {
 	  var name = _ref2.name,
 	      subItems = _ref2.subItems,
+	      icon = _ref2.icon,
 	      keyVal = _ref2.keyVal,
 	      selected = _ref2.selected,
-	      _onClick = _ref2.onClick;
+	      _onClick = _ref2.onClick,
+	      addNew = _ref2.addNew,
+	      onAdd = _ref2.onAdd;
 	
 	  /*
 	   Component for a single menu of the side menu.
@@ -24629,7 +24641,7 @@
 	  if (selected.name === name) {
 	    active = "active";
 	  }
-	  return subItems.length > 0 ? _react2.default.createElement(
+	  return subItems.length > 0 || addNew !== undefined ? _react2.default.createElement(
 	    "article",
 	    { key: keyVal },
 	    _react2.default.createElement(
@@ -24638,14 +24650,14 @@
 	      _react2.default.createElement(
 	        "a",
 	        { className: "item-text" },
-	        _react2.default.createElement("i", { className: "fa fa-dashboard fa-lg" }),
+	        _react2.default.createElement("i", { className: "fa fa-" + icon + " fa-lg" }),
 	        " ",
 	        name
 	      ),
 	      " ",
 	      _react2.default.createElement("span", { className: "arrow" })
 	    ),
-	    _react2.default.createElement(SideMenuSubItems, { name: name, subItems: subItems, subItem: selected.name === name ? selected.subItem : -1, keyVal: keyVal, onClick: _onClick })
+	    _react2.default.createElement(SideMenuSubItems, { name: name, subItems: subItems, subItem: selected.name === name ? selected.subItem : -1, keyVal: keyVal, onClick: _onClick, addNew: addNew, onAdd: onAdd })
 	  ) : _react2.default.createElement(
 	    "article",
 	    null,
@@ -24657,7 +24669,7 @@
 	      _react2.default.createElement(
 	        "a",
 	        { className: "item-text" },
-	        _react2.default.createElement("i", { className: "fa fa-user fa-lg" }),
+	        _react2.default.createElement("i", { className: "fa fa-" + icon + " fa-lg" }),
 	        " ",
 	        name
 	      )
@@ -24670,7 +24682,9 @@
 	      subItems = _ref3.subItems,
 	      keyVal = _ref3.keyVal,
 	      subItem = _ref3.subItem,
-	      _onClick2 = _ref3.onClick;
+	      _onClick2 = _ref3.onClick,
+	      addNew = _ref3.addNew,
+	      onAdd = _ref3.onAdd;
 	
 	  /*
 	  Component for the subitems for a menu item.
@@ -24700,10 +24714,32 @@
 	      )
 	    );
 	  });
+	  if (addNew !== undefined) {
+	    // add the add new button
+	    items.push(function () {
+	      var active = '';
+	      if (subItem === "new") {
+	        active = "active";
+	      }
+	      return _react2.default.createElement(
+	        "li",
+	        { className: "sub-item new " + active, key: keyVal + '-' + items.length, onClick: function onClick() {
+	            onAdd({ name: name,
+	              subItem: "new"
+	            });
+	          } },
+	        _react2.default.createElement(
+	          "a",
+	          { className: "item-text" },
+	          addNew.title
+	        )
+	      );
+	    }());
+	  }
 	  if (items.length > 0) {
 	    return _react2.default.createElement(
 	      "ul",
-	      { id: "item" + keyVal, className: "sub-items collapse " + (subItem > -1 ? "in" : "") },
+	      { id: "item" + keyVal, className: "sub-items collapse " + (subItem === "new" || subItem > -1 ? "in" : "") },
 	      items
 	    );
 	  }
@@ -24726,7 +24762,9 @@
 	});
 	exports.sideMenuClick = sideMenuClick;
 	exports.fetchDashBoard = fetchDashBoard;
+	exports.submitCellRequest = submitCellRequest;
 	exports.fetchCell = fetchCell;
+	exports.submitForm = submitForm;
 	/*
 	Contains all the actions and action creators
 	An action creator is a pure funcion that accepts a data and
@@ -24737,6 +24775,7 @@
 	addSideMenuItems 
 	expects data with name and an array subItems.
 	*/
+	var ADD_SIDEMENU_SUBITEM = exports.ADD_SIDEMENU_SUBITEM = "ADD_SIDEMENU_SUBITEM";
 	var addSideMenuItem = exports.addSideMenuItem = function addSideMenuItem(data) {
 	
 		return Object.assign({}, { name: data.name,
@@ -24745,6 +24784,7 @@
 	/*
 	this action is dispatched on sidemenuitem click
 	*/
+	var CLICK_SIDEMENU_ITEM = exports.CLICK_SIDEMENU_ITEM = "CLICK_SIDEMENU_ITEM";
 	var clickSideMenuItem = exports.clickSideMenuItem = function clickSideMenuItem(data) {
 		var selected = {};
 		selected.name = data.name;
@@ -24753,7 +24793,7 @@
 		}
 		return {
 			selected: selected,
-			type: "CLICK_SIDEMENU_ITEM" };
+			type: CLICK_SIDEMENU_ITEM };
 	};
 	/*
 	CHANGE_FRAME action creator
@@ -24780,14 +24820,27 @@
 	
 			// dispatch fetching of dashboard data
 			if (data.name === "Dashboards") {
-				dispatch(fetchDashBoard({
-					displaying: data.name,
-					api: data.api
-				}));
+				// A new dashboard creation action
+				if (data.subItem === "new") {
+					dispatch(fetchNewDashBoard());
+				} else {
+					dispatch(fetchDashBoard({
+						displaying: data.name,
+						api: data.api
+					}));
+				}
 			}
 			// dispatch fetching of the overview 
 			if (data.name === "Overview") {
 				dispatch(fetchOverview());
+			}
+			// dispatch fetching of datasets
+			if (data.name === "Datasets") {
+	
+				// A new dataset creation action
+				if (data.subItem === "new") {
+					dispatch(fetchNewDataset());
+				} // else..
 			}
 		};
 	}
@@ -24799,6 +24852,12 @@
 	var FETCH_DASHBOARD_REQUEST = exports.FETCH_DASHBOARD_REQUEST = 'FETCH_DASHBOARD_REQUEST';
 	var FETCH_DASHBOARD_SUCCESS = exports.FETCH_DASHBOARD_SUCCESS = 'FETCH_DASHBOARD_SUCCESS';
 	var FETCH_DASHBOARD_FAIL = exports.FETCH_DASHBOARD_FAIL = 'FETCH_DASHBOARD_FAIL';
+	var FETCH_NEW_DASHBOARD_FORM = exports.FETCH_NEW_DASHBOARD_FORM = 'FETCH_NEW_DASHBOARD_FORM';
+	
+	var fetchNewDashBoard = function fetchNewDashBoard(data) {
+		return { type: FETCH_NEW_DASHBOARD_FORM,
+			displaying: 'New DashBoard' };
+	};
 	
 	var requestDashBoard = function requestDashBoard(data) {
 		return Object.assign({}, { type: FETCH_DASHBOARD_REQUEST,
@@ -24875,11 +24934,73 @@
 	};
 	
 	/*
+	new dashboard action creators
+	*/
+	
+	var FETCH_NEW_DATASET_FORM = exports.FETCH_NEW_DATASET_FORM = 'FETCH_NEW_DATASET_FORM';
+	var fetchNewDataset = exports.fetchNewDataset = function fetchNewDataset(data) {
+	
+		return { type: FETCH_NEW_DATASET_FORM,
+			displaying: 'New Dataset' };
+	};
+	
+	/*
 	Cell action creators 
 	*/
 	var FETCH_CELL_REQUEST = exports.FETCH_CELL_REQUEST = 'FETCH_CELL_REQUEST';
 	var FETCH_CELL_SUCCESS = exports.FETCH_CELL_SUCCESS = 'FETCH_CELL_SUCCESS';
 	var FETCH_CELL_FAIL = exports.FETCH_CELL_FAIL = 'FETCH_CELL_FAIL';
+	var APPEND_NEW_CELL = exports.APPEND_NEW_CELL = 'APPEND_NEW_CELL';
+	var SUBMIT_CELL_SUCCESS = exports.SUBMIT_CELL_SUCCESS = 'SUBMIT_CELL_SUCCESS';
+	var SUBMIT_CELL_REQUEST = exports.SUBMIT_CELL_REQUEST = 'SUBMIT_CELL_REQUEST';
+	var SET_CELL_REQUEST = exports.SET_CELL_REQUEST = 'SET_CELL_REQUEST';
+	
+	var setCellRequest = exports.setCellRequest = function setCellRequest() {
+		return { type: SET_CELL_REQUEST };
+	};
+	function submitCellRequest(data, action, onSuccess, onFailure) {
+		/*
+	 data is form data, action is the url for the post
+	 */
+		return function (dispatch) {
+			dispatch(setCellRequest());
+	
+			// Make a POST request witht the action
+			$.ajax({
+				url: action,
+				data: data.formData,
+				processData: false,
+				contentType: false,
+				type: 'POST',
+				success: onSuccess,
+				error: onFailure
+			});
+		};
+	}
+	
+	var submitCellSuccess = exports.submitCellSuccess = function submitCellSuccess(data) {
+		/*
+	   When a new cell is being created, this is the action
+	 
+	   SUBMIT_CELL_SUCCESS and FAIL should set a state, and set this prop 
+	   to the container, this way the form fields will automatically get cleared.
+	 */
+	
+		return [{
+			payload: data.payload,
+			api: data.api,
+			type: APPEND_NEW_CELL
+		}, {
+			type: SUBMIT_CELL_SUCCESS
+		}];
+	};
+	
+	var SUBMIT_CELL_FAIL = exports.SUBMIT_CELL_FAIL = 'SUBMIT_CELL_FAIL';
+	var submitCellFail = exports.submitCellFail = function submitCellFail(data) {
+		return {
+			type: SUBMIT_CELL_FAIL
+		};
+	};
 	
 	var requestCell = exports.requestCell = function requestCell(data) {
 		return Object.assign({}, { type: FETCH_CELL_REQUEST,
@@ -24909,6 +25030,97 @@
 			});
 		};
 	}
+	
+	/*
+	Submitting of forms:
+	*/
+	var SUBMIT_FORM_REQUEST = exports.SUBMIT_FORM_REQUEST = 'SUBMIT_FORM_REQUEST';
+	var SUBMIT_FORM_SUCCESS = exports.SUBMIT_FORM_SUCCESS = 'SUBMIT_FORM_SUCCESS';
+	var SUBMIT_FORM_FAIL = exports.SUBMIT_FORM_FAIL = 'SUBMIT_FORM_FAIL';
+	
+	var submitFormRequest = function submitFormRequest() {
+		return { type: SUBMIT_FORM_REQUEST };
+	};
+	var submitFormSuccess = exports.submitFormSuccess = function submitFormSuccess() {
+		return { type: SUBMIT_FORM_SUCCESS };
+	};
+	var submitFormFail = exports.submitFormFail = function submitFormFail() {
+		return { type: SUBMIT_FORM_FAIL };
+	};
+	
+	function submitForm(data, action, onSuccess, onFailure) {
+		/*
+	 data is form data, action is the url for the post
+	 */
+		return function (dispatch) {
+			dispatch(submitFormRequest());
+	
+			// Make a POST request witht the action
+			$.ajax({
+				url: action,
+				data: data.formData,
+				processData: false,
+				contentType: false,
+				type: 'POST',
+				success: onSuccess,
+				error: onFailure
+			});
+		};
+	}
+	
+	/*
+	Dataset form success actions
+	*/
+	var SUBMIT_DATASET_FORM_SUCCESS = exports.SUBMIT_DATASET_FORM_SUCCESS = 'SUBMIT_DATASET_FORM_SUCCESS';
+	var submitDatasetFormSuccess = exports.submitDatasetFormSuccess = function submitDatasetFormSuccess(data) {
+		return [{
+			type: ADD_SIDEMENU_SUBITEM,
+			name: 'Datasets',
+			subItem: { title: data.name, api: data.api }
+	
+		}, {
+			type: SUBMIT_DATASET_FORM_SUCCESS
+	
+		}];
+	};
+	
+	/*
+	Dashboard form success actions
+	*/
+	var SUBMIT_DASHBOARD_FORM_SUCCESS = exports.SUBMIT_DASHBOARD_FORM_SUCCESS = 'SUBMIT_DASHBOARD_FORM_SUCCESS';
+	var submitDashboardFormSuccess = exports.submitDashboardFormSuccess = function submitDashboardFormSuccess(data) {
+		return [{
+			type: ADD_SIDEMENU_SUBITEM,
+			name: 'Dashboards',
+			subItem: { title: data.title, api: data.api }
+	
+		}, {
+			type: SUBMIT_DASHBOARD_FORM_SUCCESS
+	
+		}];
+	};
+	
+	/*
+	actions for fetching dataset head
+	*/
+	
+	var FETCH_HEAD_REQUEST = exports.FETCH_HEAD_REQUEST = 'FETCH_HEAD_REQUEST';
+	var FETCH_HEAD_SUCCESS = exports.FETCH_HEAD_SUCCESS = 'FETCH_HEAD_SUCCESS';
+	var fetchHead = exports.fetchHead = function fetchHead(api) {
+	
+		return function (dispatch) {
+	
+			$.get(api + "?format=json", function (jsonStr) {
+				dispatch(recieveHead(JSON.parse(jsonStr.replace(/&quot;/g, '"'))));
+			});
+		};
+	};
+	var recieveHead = exports.recieveHead = function recieveHead(json) {
+		return {
+			type: FETCH_HEAD_SUCCESS,
+			head: json
+		};
+	};
 
 /***/ },
 /* 226 */
@@ -24960,19 +25172,19 @@
 	    value: true
 	});
 	
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; /*
-	                                                                                                                                                                                                                                                                  Component for mainFrame 
-	                                                                                                                                                                                                                                                                  Components need to be pure functions, implement the same as one
-	                                                                                                                                                                                                                                                                  */
-	
-	
 	var _react = __webpack_require__(/*! react */ 1);
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _CellComponent = __webpack_require__(/*! ./CellComponent */ 228);
+	var _NewDatasetContainer = __webpack_require__(/*! ../containers/NewDatasetContainer */ 228);
 	
-	var _CellComponent2 = _interopRequireDefault(_CellComponent);
+	var _NewDatasetContainer2 = _interopRequireDefault(_NewDatasetContainer);
+	
+	var _NewDashBoardContainer = __webpack_require__(/*! ../containers/NewDashBoardContainer */ 230);
+	
+	var _NewDashBoardContainer2 = _interopRequireDefault(_NewDashBoardContainer);
+	
+	var _DashBoardComponent = __webpack_require__(/*! ./DashBoardComponent */ 232);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -24987,6 +25199,10 @@
 		    cells: [...]
 		}
 	}
+	*/
+	/*
+	Component for mainFrame 
+	Components need to be pure functions, implement the same as one
 	*/
 	var MainFrameComponent = function MainFrameComponent(_ref) {
 	    var mainFrame = _ref.mainFrame;
@@ -25003,9 +25219,17 @@
 	                        'Fetching...'
 	                    );
 	                }
-	                return _react2.default.createElement(DashBoardViewComponent, { data: mainFrame.data });
+	                return _react2.default.createElement(_DashBoardComponent.DashBoardEditComponent, { data: mainFrame.data });
 	            }
-	        case "overview":
+	        case "New Dataset":
+	            {
+	                return _react2.default.createElement(_NewDatasetContainer2.default, null);
+	            }
+	        case "New DashBoard":
+	            {
+	                return _react2.default.createElement(_NewDashBoardContainer2.default, null);
+	            }
+	        case "Overview":
 	            {
 	                return _react2.default.createElement('div', null);
 	            }
@@ -25014,33 +25238,571 @@
 	    }
 	};
 	
-	var DashBoardViewComponent = function DashBoardViewComponent(_ref2) {
-	    var data = _ref2.data;
-	
-	    // Get the data.cells
-	    var cells = data.cells.map(function (cell, i) {
-	        return _react2.default.createElement(_CellComponent2.default, _extends({ key: "cell-" + i, cellKey: "cell-" + i }, cell));
-	    });
-	    return _react2.default.createElement(
-	        'div',
-	        null,
-	        _react2.default.createElement(
-	            'div',
-	            { className: 'page-header' },
-	            _react2.default.createElement(
-	                'h1',
-	                null,
-	                data.title
-	            )
-	        ),
-	        cells
-	    );
-	};
-	
 	exports.default = MainFrameComponent;
 
 /***/ },
 /* 228 */
+/*!***********************************************!*\
+  !*** ./src/containers/NewDatasetContainer.js ***!
+  \***********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _reactRedux = __webpack_require__(/*! react-redux */ 204);
+	
+	var _NewDatasetComponent = __webpack_require__(/*! ../components/NewDatasetComponent */ 229);
+	
+	var _NewDatasetComponent2 = _interopRequireDefault(_NewDatasetComponent);
+	
+	var _actions = __webpack_require__(/*! ../actions */ 225);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	
+		return {
+			onFormSubmit: function onFormSubmit(data, action, onSuccess, onFailure) {
+				dispatch((0, _actions.submitForm)(data, action, onSuccess, onFailure));
+			},
+			onSuccess: function onSuccess(data) {
+				dispatch((0, _actions.submitDatasetFormSuccess)(data));
+			},
+			onFailure: function onFailure(response) {
+				dispatch((0, _actions.submitFormFail)(response));
+			}
+		};
+	};
+	
+	var mapStateToProps = function mapStateToProps(state) {
+	
+		return {
+			submitted: state.mainFrame.submitted,
+			isFetching: state.mainFrame.isFetching,
+			success: state.mainFrame.success
+		};
+	};
+	
+	var NewDatasetContainer = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(_NewDatasetComponent2.default);
+	
+	exports.default = NewDatasetContainer;
+
+/***/ },
+/* 229 */
+/*!***********************************************!*\
+  !*** ./src/components/NewDatasetComponent.js ***!
+  \***********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var NewDatasetComponent = function NewDatasetComponent(_ref) {
+	  var isFetching = _ref.isFetching,
+	      submitted = _ref.submitted,
+	      success = _ref.success,
+	      onFormSubmit = _ref.onFormSubmit,
+	      onSuccess = _ref.onSuccess,
+	      onFailure = _ref.onFailure;
+	
+	  return submitted === true ? _react2.default.createElement(
+	    "div",
+	    { className: "dataset-form" },
+	    _react2.default.createElement(
+	      "div",
+	      { className: "col-sm-8" },
+	      _react2.default.createElement(
+	        "div",
+	        { className: "page-header" },
+	        success ? "Request has been submittted" : "Request has failed"
+	      )
+	    )
+	  ) : _react2.default.createElement(
+	    "div",
+	    { className: "dataset-form" },
+	    _react2.default.createElement(
+	      "div",
+	      { className: "col-sm-8" },
+	      _react2.default.createElement(
+	        "div",
+	        { className: "page-header" },
+	        _react2.default.createElement(
+	          "h1",
+	          null,
+	          "Add a new Dataset"
+	        )
+	      ),
+	      _react2.default.createElement(
+	        "div",
+	        { className: "section" },
+	        _react2.default.createElement(
+	          "form",
+	          { id: "dataset-form", onSubmit: function onSubmit(e) {
+	              e.preventDefault();
+	              // validate the form data
+	              var fd = new FormData($("#dataset-form")[0]);
+	              if (!validate(fd)) {
+	                return false;
+	              }
+	              onFormSubmit({ formData: fd }, "/api/dataset/", onSuccess, onFailure);
+	            } },
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              { htmlFor: "dataset-name" },
+	              "Dataset Name"
+	            ),
+	            _react2.default.createElement("input", { type: "text", name: "dataset-name", className: "form-control", placeholder: "Enter a name for the dataset" })
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              null,
+	              "Set the data via"
+	            ),
+	            _react2.default.createElement(
+	              "div",
+	              { className: "radio" },
+	              _react2.default.createElement(
+	                "label",
+	                null,
+	                _react2.default.createElement("input", { type: "radio", name: "dataset-type", defaultChecked: true, value: "csv" }),
+	                "CSV"
+	              )
+	            ),
+	            _react2.default.createElement(
+	              "div",
+	              { className: "radio" },
+	              _react2.default.createElement(
+	                "label",
+	                null,
+	                _react2.default.createElement("input", { type: "radio", name: "dataset-type", value: "api" }),
+	                "API"
+	              )
+	            )
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              { htmlFor: "csv-file" },
+	              "Upload CSV"
+	            ),
+	            _react2.default.createElement("input", { type: "file", name: "csv-file" }),
+	            _react2.default.createElement(
+	              "p",
+	              { className: "help-block" },
+	              "Upload a CSV file."
+	            )
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              { htmlFor: "description" },
+	              "Description"
+	            ),
+	            _react2.default.createElement("textarea", { name: "description", className: "form-control", placeholder: "Include a brief description of what the data is.." })
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            isFetching === false ? _react2.default.createElement(
+	              "button",
+	              { type: "submit", className: "btn btn-primary" },
+	              "Submit"
+	            ) : _react2.default.createElement(
+	              "button",
+	              { className: "btn btn-primary disabled", disabled: true },
+	              "Submiting, please wait"
+	            )
+	          )
+	        )
+	      )
+	    )
+	  );
+	}; /*
+	   Component to add a new dataset
+	   */
+	
+	
+	function validate(formData) {
+	
+	  if (formData.get('dataset-name') === '') {
+	    alert('Please enter a name for the dataset!');
+	    return false;
+	  }
+	  if (formData.get('dataset-type') === 'csv' && formData.get('csv-file').size === 0) {
+	    alert('Please select a CSV file!');
+	    return false;
+	  }
+	  return true;
+	}
+	
+	exports.default = NewDatasetComponent;
+
+/***/ },
+/* 230 */
+/*!*************************************************!*\
+  !*** ./src/containers/NewDashBoardContainer.js ***!
+  \*************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _reactRedux = __webpack_require__(/*! react-redux */ 204);
+	
+	var _NewDashBoardComponent = __webpack_require__(/*! ../components/NewDashBoardComponent */ 231);
+	
+	var _NewDashBoardComponent2 = _interopRequireDefault(_NewDashBoardComponent);
+	
+	var _actions = __webpack_require__(/*! ../actions */ 225);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var mapStateToProps = function mapStateToProps(state) {
+	
+		// This requires the datasets, so fetch it from the state.sidemenu
+		var datasets = state.sideMenu.sideMenuItems.filter(function (v) {
+			return v.name === "Datasets";
+		})[0];
+	
+		return {
+			submitted: state.mainFrame.submitted,
+			isFetching: state.mainFrame.isFetching,
+			success: state.mainFrame.success,
+			datasets: datasets.subItems
+		};
+	};
+	
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	
+		return {
+			onFormSubmit: function onFormSubmit(data, action, onSuccess, onFailure) {
+				dispatch((0, _actions.submitForm)(data, action, onSuccess, onFailure));
+			},
+			onSuccess: function onSuccess(data) {
+				dispatch((0, _actions.submitDashboardFormSuccess)(data));
+			},
+			onFailure: function onFailure(response) {
+				dispatch((0, _actions.submitFormFail)(response));
+			}
+		};
+	};
+	
+	var NewDashBoardContainer = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(_NewDashBoardComponent2.default);
+	
+	exports.default = NewDashBoardContainer;
+
+/***/ },
+/* 231 */
+/*!*************************************************!*\
+  !*** ./src/components/NewDashBoardComponent.js ***!
+  \*************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var NewDashBoardComponent = function NewDashBoardComponent(_ref) {
+	  var isFetching = _ref.isFetching,
+	      submitted = _ref.submitted,
+	      success = _ref.success,
+	      datasets = _ref.datasets,
+	      onFormSubmit = _ref.onFormSubmit,
+	      onSuccess = _ref.onSuccess,
+	      onFailure = _ref.onFailure;
+	
+	
+	  return submitted === true ? _react2.default.createElement(
+	    "div",
+	    { className: "dataset-form" },
+	    _react2.default.createElement(
+	      "div",
+	      { className: "col-sm-8" },
+	      _react2.default.createElement(
+	        "div",
+	        { className: "page-header" },
+	        success ? "Request has been submittted" : "Request has failed"
+	      )
+	    )
+	  ) : _react2.default.createElement(
+	    "div",
+	    { className: "dashboard-form" },
+	    _react2.default.createElement(
+	      "div",
+	      { className: "col-sm-8" },
+	      _react2.default.createElement(
+	        "div",
+	        { className: "page-header" },
+	        _react2.default.createElement(
+	          "h1",
+	          null,
+	          "Add a new Dashboard"
+	        )
+	      ),
+	      _react2.default.createElement(
+	        "div",
+	        { className: "section" },
+	        _react2.default.createElement(
+	          "form",
+	          { id: "dashboard-form", action: "/api/dashboard/", onSubmit: function onSubmit(e) {
+	              e.preventDefault();
+	              // validate the form data
+	              var fd = new FormData($("#dashboard-form")[0]);
+	              if (!validate(fd)) {
+	                return false;
+	              }
+	              onFormSubmit({ formData: fd }, $("#dashboard-form").attr('action'), onSuccess, onFailure);
+	            } },
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              { htmlFor: "title" },
+	              "Dashboard Name"
+	            ),
+	            _react2.default.createElement("input", { type: "text", name: "title", className: "form-control", placeholder: "Enter a name for the dashboard" })
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            _react2.default.createElement(
+	              "label",
+	              null,
+	              "Select a Dataset"
+	            ),
+	            formDatasetSelect(datasets)
+	          ),
+	          _react2.default.createElement(
+	            "div",
+	            { className: "form-group" },
+	            isFetching === false ? _react2.default.createElement(
+	              "button",
+	              { type: "submit", className: "btn btn-primary" },
+	              "Submit"
+	            ) : _react2.default.createElement(
+	              "button",
+	              { className: "btn btn-primary disabled", disabled: true },
+	              "Submiting, please wait"
+	            )
+	          )
+	        )
+	      )
+	    )
+	  );
+	}; /*
+	   Component to add a new dashboard
+	   */
+	
+	
+	var formDatasetSelect = function formDatasetSelect(datasets) {
+	  /*dataset has the shape 
+	    dataset = [{title:"",api:""},{title:"",api:""}...]
+	  */
+	  var datasetList = datasets.map(function (v, i) {
+	    return _react2.default.createElement(
+	      "option",
+	      { key: "dset-" + i, value: v.api },
+	      v.title
+	    );
+	  });
+	  return _react2.default.createElement(
+	    "select",
+	    { className: "form-control", name: "dataset" },
+	    datasetList
+	  );
+	};
+	
+	function validate(formData) {
+	
+	  if (formData.get('title') === '') {
+	    alert('Please enter a name for the dashboard!');
+	    return false;
+	  }
+	  return true;
+	}
+	
+	exports.default = NewDashBoardComponent;
+
+/***/ },
+/* 232 */
+/*!**********************************************!*\
+  !*** ./src/components/DashBoardComponent.js ***!
+  \**********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.DashBoardEditComponent = exports.DashBoardViewComponent = undefined;
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; /*
+	                                                                                                                                                                                                                                                                  Components for rendering a dashboard.
+	                                                                                                                                                                                                                                                                  This has two types, one for read only and the other is editable
+	                                                                                                                                                                                                                                                                  DashBoardViewComponent DashBoardEditComponent resp.
+	                                                                                                                                                                                                                                                                  */
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _CellComponent = __webpack_require__(/*! ./CellComponent */ 233);
+	
+	var _CellComponent2 = _interopRequireDefault(_CellComponent);
+	
+	var _DashBoardModalContainer = __webpack_require__(/*! ../containers/DashBoardModalContainer */ 235);
+	
+	var _DashBoardModalContainer2 = _interopRequireDefault(_DashBoardModalContainer);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var DashBoardViewComponent = exports.DashBoardViewComponent = function DashBoardViewComponent(_ref) {
+	  var data = _ref.data;
+	
+	  // Get the data.cells
+	  var cells = data.cells.map(function (cell, i) {
+	    return _react2.default.createElement(_CellComponent2.default, _extends({ key: "cell-" + i, cellKey: "cell-" + i }, cell));
+	  });
+	  return _react2.default.createElement(
+	    'div',
+	    null,
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'page-header' },
+	      _react2.default.createElement(
+	        'h1',
+	        null,
+	        data.title
+	      )
+	    ),
+	    cells
+	  );
+	};
+	
+	var DashBoardEditComponent = exports.DashBoardEditComponent = function DashBoardEditComponent(_ref2) {
+	  var data = _ref2.data;
+	
+	  // Get the data.cells
+	  var cells = data.cells.map(function (cell, i) {
+	    return _react2.default.createElement(_CellComponent2.default, _extends({ key: "cell-" + i, cellKey: "cell-" + i }, cell));
+	  });
+	  return _react2.default.createElement(
+	    'div',
+	    null,
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'row' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'col-sm-12' },
+	        _react2.default.createElement(DashBoardToolBarComponent, { title: data.title })
+	      ),
+	      _react2.default.createElement(_DashBoardModalContainer2.default, null)
+	    ),
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'row cell-content-row' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'col-sm-12' },
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'cell-container' },
+	          cells
+	        )
+	      )
+	    )
+	  );
+	};
+	
+	/*
+	Edit dashboard header and toolbar component
+	*/
+	var DashBoardToolBarComponent = function DashBoardToolBarComponent(_ref3) {
+	  var title = _ref3.title;
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'dashboard-edit', 'data-spy': 'affix' },
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'page-header zero-bottom' },
+	      _react2.default.createElement(
+	        'h1',
+	        null,
+	        title
+	      ),
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'button-toolbar' },
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'section' },
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'btn-group', role: 'group', 'aria-label': '...' },
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', 'data-keyboard': 'false',
+	                className: 'btn btn-default', 'data-toggle': 'modal',
+	                id: 'text-toolbar', 'data-target': '#cell-modal', 'data-backdrop': 'static' },
+	              '+ T'
+	            ),
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'btn btn-default', 'data-toggle': 'modal',
+	                'data-target': '#g-cell-modal', 'data-keyboard': 'false', id: 'graph-toolbar', 'data-backdrop': 'static' },
+	              '+ G'
+	            ),
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'btn btn-default', 'data-toggle': 'modal', 'data-target': '#head-modal' },
+	              'Show Data'
+	            )
+	          )
+	        )
+	      )
+	    )
+	  );
+	};
+
+/***/ },
+/* 233 */
 /*!*****************************************!*\
   !*** ./src/components/CellComponent.js ***!
   \*****************************************/
@@ -25049,7 +25811,7 @@
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -25058,7 +25820,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _p3toc = __webpack_require__(/*! ../p3toc3 */ 229);
+	var _p3toc = __webpack_require__(/*! ../p3toc3 */ 234);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -25085,148 +25847,222 @@
 	
 	
 	var CellComponent = function CellComponent(_ref) {
-	    var isFetching = _ref.isFetching,
-	        isInvalidated = _ref.isInvalidated,
-	        api = _ref.api,
-	        payload = _ref.payload,
-	        cellKey = _ref.cellKey;
+	  var isFetching = _ref.isFetching,
+	      isInvalidated = _ref.isInvalidated,
+	      api = _ref.api,
+	      payload = _ref.payload,
+	      cellKey = _ref.cellKey;
 	
 	
-	    if (isFetching) {
-	        return _react2.default.createElement(CellLoading, null);
-	    } else {
-	        switch (payload.cell_type) {
-	            case "TextData":
-	                {
-	                    return _react2.default.createElement(CellTextData, { data: payload });
-	                }
-	            case "Chart":
-	                {
-	                    return _react2.default.createElement(CellChart, { cellKey: cellKey, data: payload });
-	                }
-	            default:
-	                return _react2.default.createElement('div', null);
+	  if (isFetching) {
+	    return _react2.default.createElement(CellLoading, null);
+	  } else {
+	    switch (payload.cell_type) {
+	      case "TextData":
+	        {
+	          return _react2.default.createElement(CellTextData, { data: payload });
 	        }
+	      case "Chart":
+	        {
+	          return _react2.default.createElement(CellChart, { cellKey: cellKey, data: payload });
+	        }
+	      default:
+	        return _react2.default.createElement('div', null);
 	    }
+	  }
 	};
 	
 	var CellLoading = function CellLoading() {
-	    return _react2.default.createElement(
-	        'div',
-	        { className: 'alert alert-info' },
-	        'loading cell...'
-	    );
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'alert alert-info' },
+	    'loading cell...'
+	  );
 	};
 	
+	/*
+	Editable Cell- CellTextDataEditable
+	*/
+	
 	var CellTextData = function CellTextData(_ref2) {
-	    var data = _ref2.data;
-	    return _react2.default.createElement(
+	  var data = _ref2.data;
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'cell-container' },
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'well' },
+	      _react2.default.createElement(
 	        'div',
-	        { className: 'well' },
+	        { className: 'header' },
 	        _react2.default.createElement(
-	            'p',
-	            null,
-	            data.description
+	          'div',
+	          { className: 'dropdown edit-cell' },
+	          _react2.default.createElement(
+	            'button',
+	            { className: 'close btn btn-default dropdown-toggle',
+	              type: 'button', id: 'dropdownMenu1', 'data-toggle': 'dropdown',
+	              'aria-haspopup': 'true', 'aria-expanded': 'true' },
+	            _react2.default.createElement(
+	              'span',
+	              null,
+	              '\u2026'
+	            )
+	          ),
+	          _react2.default.createElement(
+	            'ul',
+	            { className: 'dropdown-menu dropdown-menu-right', 'aria-labelledby': 'dropdownMenu1' },
+	            _react2.default.createElement(
+	              'li',
+	              null,
+	              _react2.default.createElement(
+	                'a',
+	                { href: '#', 'data-toggle': 'modal', 'data-target': '#cell-modal' },
+	                'Edit'
+	              )
+	            ),
+	            _react2.default.createElement('li', { role: 'separator', className: 'divider' }),
+	            _react2.default.createElement(
+	              'li',
+	              null,
+	              _react2.default.createElement(
+	                'a',
+	                { href: '#' },
+	                'Delete'
+	              )
+	            )
+	          )
 	        )
-	    );
+	      ),
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'section' },
+	        _react2.default.createElement(
+	          'p',
+	          null,
+	          data.description
+	        )
+	      )
+	    )
+	  );
+	};
+	
+	var CellTextDataViewOnly = function CellTextDataViewOnly(_ref3) {
+	  var data = _ref3.data;
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'well' },
+	    _react2.default.createElement(
+	      'p',
+	      null,
+	      data.description
+	    )
+	  );
 	};
 	
 	var CellChart = function (_React$Component) {
-	    _inherits(CellChart, _React$Component);
+	  _inherits(CellChart, _React$Component);
 	
-	    function CellChart() {
-	        _classCallCheck(this, CellChart);
+	  function CellChart() {
+	    _classCallCheck(this, CellChart);
 	
-	        return _possibleConstructorReturn(this, (CellChart.__proto__ || Object.getPrototypeOf(CellChart)).apply(this, arguments));
+	    return _possibleConstructorReturn(this, (CellChart.__proto__ || Object.getPrototypeOf(CellChart)).apply(this, arguments));
+	  }
+	
+	  _createClass(CellChart, [{
+	    key: 'componentDidMount',
+	
+	    /*
+	    This is the where the chart data in a cell is displayed.
+	    This is not a pure function as it needs to call a c3 method as well.
+	    Props recieved by this component is data
+	    data = {
+	    cell_type:'Chart',
+	      "id": 1,
+	      "title": "Simple Chart",
+	      "xlabel": "x axis",
+	      "ylabel": "yaxis",
+	      chart_type:"pie",
+	      "figures": [
+	          {
+	              "id": 1,
+	              "dataframe": "{\"bug\":{\"0\":joe,\"1\":joe,\"2\":moe,\"3\":moe,\"4\":curly,\"5\":joe,\"6\":john,\"7\":bon,\"8\":bon,\"9\":hon}}"
+	            
+	          }
+	      ]
+	     }
+	    */
+	    value: function componentDidMount() {
+	      var data = this.props.data;
+	
+	      var c3Data = getC3Data(data);
+	      window.c3Data = c3Data;
+	      var bindId = "#chart-" + this.props.cellKey;
+	
+	      c3.generate({ bindto: bindId,
+	        data: c3Data,
+	        legend: {
+	          position: 'right'
+	        }
+	
+	      });
+	      /*
+	       c3.generate({
+	      data: {
+	      // iris data from R
+	      bindto:"#chart-cell-1",
+	      columns: [
+	          ['data1', 30],
+	          ['data2', 120],
+	      ],
+	      type : 'pie'}});
+	      */
 	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return _react2.default.createElement(
+	        'div',
+	        { className: 'graph-panel' },
+	        _react2.default.createElement(
+	          'h4',
+	          { style: { textAlign: 'center', paddingTop: "15px" } },
+	          this.props.data.title
+	        ),
+	        _react2.default.createElement('div', { id: "chart-" + this.props.cellKey })
+	      );
+	    }
+	  }]);
 	
-	    _createClass(CellChart, [{
-	        key: 'componentDidMount',
-	
-	        /*
-	        This is the where the chart data in a cell is displayed.
-	        This is not a pure function as it needs to call a c3 method as well.
-	        Props recieved by this component is data
-	        data = {
-	        cell_type:'Chart',
-	          "id": 1,
-	          "title": "Simple Chart",
-	          "xlabel": "x axis",
-	          "ylabel": "yaxis",
-	          chart_type:"pie",
-	          "figures": [
-	              {
-	                  "id": 1,
-	                  "dataframe": "{\"bug\":{\"0\":joe,\"1\":joe,\"2\":moe,\"3\":moe,\"4\":curly,\"5\":joe,\"6\":john,\"7\":bon,\"8\":bon,\"9\":hon}}"
-	                
-	              }
-	          ]
-	         }
-	        */
-	        value: function componentDidMount() {
-	            var data = this.props.data;
-	
-	            var c3Data = getC3Data(data);
-	            window.c3Data = c3Data;
-	            var bindId = "#chart-" + this.props.cellKey;
-	
-	            c3.generate({ bindto: bindId,
-	                data: c3Data,
-	                legend: {
-	                    position: 'right'
-	                }
-	
-	            });
-	            /*
-	             c3.generate({
-	            data: {
-	            // iris data from R
-	            bindto:"#chart-cell-1",
-	            columns: [
-	                ['data1', 30],
-	                ['data2', 120],
-	            ],
-	            type : 'pie'}});
-	            */
-	        }
-	    }, {
-	        key: 'render',
-	        value: function render() {
-	            return _react2.default.createElement(
-	                'div',
-	                { className: 'graph-panel' },
-	                _react2.default.createElement(
-	                    'h4',
-	                    { style: { textAlign: 'center', paddingTop: "15px" } },
-	                    this.props.data.title
-	                ),
-	                _react2.default.createElement('div', { id: "chart-" + this.props.cellKey })
-	            );
-	        }
-	    }]);
-	
-	    return CellChart;
+	  return CellChart;
 	}(_react2.default.Component);
 	
 	var getC3Data = function getC3Data(data) {
-	    var c3data = {};
-	    // handling just one figure for now
-	    switch (data.chart_type) {
+	  var c3data = {};
+	  // handling just one figure for now
+	  switch (data.chart_type) {
 	
-	        case 'pie':
-	            {
+	    case 'pie':
+	      {
 	
-	                return Object.assign({}, {
-	                    columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
-	                }, { type: 'pie' });
-	            }
-	    }
+	        return Object.assign({}, {
+	          columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
+	        }, { type: 'pie' });
+	      }
+	    case 'bar':
+	      {
+	
+	        return Object.assign({}, {
+	          columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
+	        }, { type: 'bar' });
+	      }
+	  }
 	};
 	
 	exports.default = CellComponent;
 
 /***/ },
-/* 229 */
+/* 234 */
 /*!***********************!*\
   !*** ./src/p3toc3.js ***!
   \***********************/
@@ -25235,7 +26071,7 @@
 	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
-					value: true
+	    value: true
 	});
 	/*
 	Module to convert data from p3 to c3 usable format
@@ -25243,42 +26079,590 @@
 	
 	var makeHistogram = function makeHistogram(list) {
 	
-					var i = void 0;
-					var obj = {};
-					for (i = 0; i < list.length; i++) {
-									if (!obj.hasOwnProperty(list[i])) {
-													obj[list[i]] = 1;
-									} else {
-													obj[list[i]] += 1;
-									}
-					}
+	    var i = void 0;
+	    var obj = {};
+	    for (i = 0; i < list.length; i++) {
+	        if (!obj.hasOwnProperty(list[i])) {
+	            obj[list[i]] = 1;
+	        } else {
+	            obj[list[i]] += 1;
+	        }
+	    }
 	
-					return obj;
+	    return obj;
 	};
 	
 	var makeC3Hist = exports.makeC3Hist = function makeC3Hist(series) {
 	
-					var key = Object.keys(series)[0];
-					var hist = makeHistogram(objToArr(series[key]));
-					var columns = [];
-					for (var k in hist) {
-									if (hist.hasOwnProperty(k)) {
-													var column = [k, hist[k]];
-													columns.push(column);
-									}
-					}
-					return columns;
+	    var key = Object.keys(series)[0];
+	    var hist = makeHistogram(objToArr(series[key]));
+	    var columns = [];
+	    for (var k in hist) {
+	        if (hist.hasOwnProperty(k)) {
+	            var column = [k, hist[k]];
+	            columns.push(column);
+	        }
+	    }
+	    return columns;
 	};
 	
 	var objToArr = exports.objToArr = function objToArr(arrayLike) {
-					var keys = Object.keys(arrayLike);
-					return keys.map(function (i) {
-									return arrayLike[i];
-					});
+	    var keys = Object.keys(arrayLike);
+	    return keys.map(function (i) {
+	        return arrayLike[i];
+	    });
+	};
+	
+	var transformPanda = exports.transformPanda = function transformPanda(pandaObj) {
+	    var shadow = Object.assign({}, pandaObj);
+	    for (var i in shadow) {
+	        shadow[i] = objToArr(shadow[i]);
+	    }
+	    return shadow;
 	};
 
 /***/ },
-/* 230 */
+/* 235 */
+/*!***************************************************!*\
+  !*** ./src/containers/DashBoardModalContainer.js ***!
+  \***************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _reactRedux = __webpack_require__(/*! react-redux */ 204);
+	
+	var _DashBoardModalComponent = __webpack_require__(/*! ../components/DashBoardModalComponent */ 236);
+	
+	var _DashBoardModalComponent2 = _interopRequireDefault(_DashBoardModalComponent);
+	
+	var _actions = __webpack_require__(/*! ../actions */ 225);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var mapStateToProps = function mapStateToProps(state) {
+	
+		return {
+			dashboard: state.mainFrame.data.api,
+			head: state.mainFrame.head
+		};
+	};
+	
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	
+		return {
+			onFormSubmit: function onFormSubmit(data, action, onSuccess, onFailure) {
+				dispatch((0, _actions.submitCellRequest)(data, action, onSuccess, onFailure));
+			},
+			onSuccess: function onSuccess(data) {
+				dispatch((0, _actions.submitCellSuccess)(data));
+			},
+			onFailure: function onFailure(response) {
+				dispatch((0, _actions.submitCellFail)(response));
+			},
+			onLoad: function onLoad() {
+				$('.modal').on('hidden.bs.modal', function () {
+					$('.submit-error').hide();
+					var form = $(this).find('form')[0];
+					if (form !== undefined) {
+						form.reset();
+					}
+				});
+			},
+			fetchHead: function fetchHead(api) {
+				dispatch((0, _actions.fetchHead)(api));
+			}
+		};
+	};
+	
+	var DashBoardModalContainer = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(_DashBoardModalComponent2.default);
+	
+	exports.default = DashBoardModalContainer;
+
+/***/ },
+/* 236 */
+/*!***************************************************!*\
+  !*** ./src/components/DashBoardModalComponent.js ***!
+  \***************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _p3toc = __webpack_require__(/*! ../p3toc3 */ 234);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               Modals for edit dashboards
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               */
+	
+	
+	var DashBoardModalComponent = function (_React$Component) {
+	  _inherits(DashBoardModalComponent, _React$Component);
+	
+	  function DashBoardModalComponent() {
+	    _classCallCheck(this, DashBoardModalComponent);
+	
+	    return _possibleConstructorReturn(this, (DashBoardModalComponent.__proto__ || Object.getPrototypeOf(DashBoardModalComponent)).apply(this, arguments));
+	  }
+	
+	  _createClass(DashBoardModalComponent, [{
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      /* Initialize the onLoad method here, which takes care of the modal events*/
+	      this.props.onLoad();
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	
+	      return _react2.default.createElement(
+	        'div',
+	        { className: 'container-dashboard-modals' },
+	        _react2.default.createElement(TextDataModal, this.props),
+	        _react2.default.createElement(GraphModal, this.props),
+	        _react2.default.createElement(ShowDataModal, { head: this.props.head, dashboard: this.props.dashboard, fetchHead: this.props.fetchHead })
+	      );
+	    }
+	  }]);
+	
+	  return DashBoardModalComponent;
+	}(_react2.default.Component);
+	
+	/*
+	TextData modal
+	*/
+	
+	
+	var TextDataModal = function TextDataModal(_ref) {
+	  var dashboard = _ref.dashboard,
+	      onFormSubmit = _ref.onFormSubmit,
+	      onSuccess = _ref.onSuccess,
+	      onFailure = _ref.onFailure;
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'modal fade', id: 'cell-modal', tabIndex: '-1', role: 'dialog',
+	      'aria-labelledby': 'myModalLabel', 'aria-hidden': 'true' },
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'modal-dialog', role: 'document' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'modal-content' },
+	        _react2.default.createElement(
+	          'form',
+	          { id: 'new-text-cell', action: '/api/cell/',
+	            onSubmit: function () {
+	              var fdFields = { 'type': 'TextData',
+	                'dashboard': dashboard };
+	
+	              return getOnSubmitFunction("#new-text-cell", "#cell-modal", "#save-text-cell", fdFields, onFormSubmit, onSuccess, onFailure);
+	            }() },
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-header' },
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'close cancel-text', 'data-dismiss': 'modal', 'aria-label': 'Close' },
+	              _react2.default.createElement(
+	                'span',
+	                { 'aria-hidden': 'true' },
+	                '\xD7'
+	              )
+	            ),
+	            _react2.default.createElement(
+	              'h4',
+	              { className: 'modal-title', id: 'myModalLabel' },
+	              'Add new TextData cell',
+	              _react2.default.createElement(
+	                'span',
+	                { className: 'submit-error', style: { color: 'red', display: 'none' } },
+	                '\xA0Failed.'
+	              )
+	            )
+	          ),
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-body' },
+	            _react2.default.createElement('textarea', { className: 'form-control', rows: '5', id: 'description', name: 'description' })
+	          ),
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-footer' },
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'btn btn-secondary cancel', 'data-dismiss': 'modal' },
+	              'Close'
+	            ),
+	            _react2.default.createElement(
+	              'button',
+	              { id: 'save-text-cell', type: 'submit', className: 'btn btn-primary' },
+	              'Save'
+	            )
+	          )
+	        )
+	      )
+	    )
+	  );
+	};
+	
+	/*
+	Graph modal
+	*/
+	
+	var GraphModal = function GraphModal(_ref2) {
+	  var dashboard = _ref2.dashboard,
+	      onFormSubmit = _ref2.onFormSubmit,
+	      onSuccess = _ref2.onSuccess,
+	      onFailure = _ref2.onFailure;
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'modal fade', id: 'g-cell-modal', tabIndex: '-1', role: 'dialog',
+	      'aria-labelledby': 'myModalLabel', 'aria-hidden': 'true' },
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'modal-dialog', role: 'document' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'modal-content' },
+	        _react2.default.createElement(
+	          'form',
+	          { id: 'new-chart-cell', action: '/api/cell/',
+	            onSubmit: function () {
+	              var fdFields = { 'type': 'Chart',
+	                'dashboard': dashboard };
+	
+	              return getOnSubmitFunction("#new-chart-cell", "#g-cell-modal", "#save-chart-cell", fdFields, onFormSubmit, onSuccess, onFailure);
+	            }() },
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-header' },
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'close', 'data-dismiss': 'modal', 'aria-label': 'Close' },
+	              _react2.default.createElement(
+	                'span',
+	                { 'aria-hidden': 'true' },
+	                '\xD7'
+	              )
+	            ),
+	            _react2.default.createElement(
+	              'h4',
+	              { className: 'modal-title', id: 'myModalLabel' },
+	              'Add new Graph cell'
+	            )
+	          ),
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'section' },
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'col-sm-6' },
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'row' },
+	                _react2.default.createElement(
+	                  'div',
+	                  { className: 'col-sm-12' },
+	                  _react2.default.createElement(
+	                    'label',
+	                    { htmlFor: 'graph-type' },
+	                    'Graph Type'
+	                  ),
+	                  _react2.default.createElement(
+	                    'select',
+	                    { className: 'form-control', name: 'chart_type' },
+	                    _react2.default.createElement(
+	                      'option',
+	                      { value: 'pie' },
+	                      'Pie'
+	                    ),
+	                    _react2.default.createElement(
+	                      'option',
+	                      { value: 'donut' },
+	                      'Donut'
+	                    ),
+	                    _react2.default.createElement(
+	                      'option',
+	                      { value: 'bar' },
+	                      'Bar'
+	                    ),
+	                    _react2.default.createElement(
+	                      'option',
+	                      { value: 'scatter' },
+	                      'Scatter'
+	                    ),
+	                    _react2.default.createElement(
+	                      'option',
+	                      { value: 'line' },
+	                      'Line'
+	                    )
+	                  ),
+	                  _react2.default.createElement(
+	                    'label',
+	                    { htmlFor: 'title' },
+	                    'Title'
+	                  ),
+	                  _react2.default.createElement('input', { className: 'form-control', type: 'text', name: 'title' }),
+	                  _react2.default.createElement(
+	                    'label',
+	                    { htmlFor: 'formula' },
+	                    'Formula'
+	                  ),
+	                  _react2.default.createElement('input', { className: 'form-control', type: 'text', name: 'formula' }),
+	                  _react2.default.createElement(
+	                    'label',
+	                    { htmlFor: 'x-label' },
+	                    'Xaxis'
+	                  ),
+	                  _react2.default.createElement('input', { className: 'form-control', type: 'text', name: 'xlabel' }),
+	                  _react2.default.createElement(
+	                    'label',
+	                    { htmlFor: 'y-axis' },
+	                    'Yaxis'
+	                  ),
+	                  _react2.default.createElement('input', { className: 'form-control', type: 'text', id: 'ylabel' }),
+	                  _react2.default.createElement(
+	                    'button',
+	                    { type: 'button', className: ' form-control btn btn-success' },
+	                    'Preview'
+	                  )
+	                )
+	              )
+	            ),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'col-sm-6' },
+	              _react2.default.createElement(
+	                'div',
+	                { className: 'row' },
+	                _react2.default.createElement(
+	                  'div',
+	                  { className: 'col-sm-12' },
+	                  _react2.default.createElement(
+	                    'label',
+	                    null,
+	                    'Graph Preview'
+	                  ),
+	                  _react2.default.createElement('div', { className: 'well', style: { minHeight: "200px" } })
+	                )
+	              )
+	            )
+	          ),
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-footer' },
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'button', className: 'btn btn-secondary cancel', 'data-dismiss': 'modal' },
+	              'Close'
+	            ),
+	            _react2.default.createElement(
+	              'button',
+	              { type: 'submit', id: 'save-chart-cell',
+	                className: 'btn btn-primary' },
+	              'Save changes'
+	            )
+	          )
+	        )
+	      )
+	    )
+	  );
+	};
+	
+	/*
+	show data modal
+	*/
+	
+	var ShowDataModal = function (_React$Component2) {
+	  _inherits(ShowDataModal, _React$Component2);
+	
+	  function ShowDataModal() {
+	    _classCallCheck(this, ShowDataModal);
+	
+	    return _possibleConstructorReturn(this, (ShowDataModal.__proto__ || Object.getPrototypeOf(ShowDataModal)).apply(this, arguments));
+	  }
+	
+	  _createClass(ShowDataModal, [{
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      /*Fetch the data head from here*/
+	      this.props.fetchHead(this.props.dashboard + 'head/');
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	
+	      return _react2.default.createElement(
+	        'div',
+	        { className: 'modal fade', id: 'head-modal', tabIndex: '-1', role: 'dialog' },
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'modal-dialog', role: 'document' },
+	          _react2.default.createElement(
+	            'div',
+	            { className: 'modal-content' },
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'modal-header' },
+	              _react2.default.createElement(
+	                'button',
+	                { type: 'button', className: 'close', 'data-dismiss': 'modal', 'aria-label': 'Close' },
+	                _react2.default.createElement(
+	                  'span',
+	                  { 'aria-hidden': 'true' },
+	                  '\xD7'
+	                )
+	              ),
+	              _react2.default.createElement(
+	                'h4',
+	                { className: 'modal-title', id: 'myModalLabel' },
+	                'Dataset Header'
+	              )
+	            ),
+	            _react2.default.createElement(
+	              'div',
+	              { className: 'modal-body' },
+	              _react2.default.createElement(DatasetHead, { dataset: this.props.head })
+	            )
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return ShowDataModal;
+	}(_react2.default.Component);
+	
+	/*
+	Component returns a dataset table given a dataset
+	*/
+	
+	
+	var DatasetHead = function DatasetHead(_ref3) {
+	  var dataset = _ref3.dataset;
+	
+	  // return empty div if dataset is undefined
+	  if (dataset === undefined) {
+	    return _react2.default.createElement('div', null);
+	  }
+	  // convert dataset to usable form
+	  var shadow = (0, _p3toc.transformPanda)(dataset);
+	  // form the table header
+	  var head = _react2.default.createElement(
+	    'tr',
+	    null,
+	    _react2.default.createElement(
+	      'th',
+	      null,
+	      '#'
+	    ),
+	    Object.keys(shadow).map(function (v, i) {
+	      return _react2.default.createElement(
+	        'th',
+	        { key: "head-" + i },
+	        v
+	      );
+	    })
+	  );
+	  // Next form the body of the table row by row         
+	  var tbody = [];
+	  var dataKeys = Object.keys(shadow); // all the keys of the dataset
+	  for (var i = 0; i < shadow[dataKeys[0]].length; i++) {
+	    // for the length of each series
+	    var rows = [];
+	    rows.push(_react2.default.createElement(
+	      'th',
+	      { scope: 'row', key: "scope-" + i },
+	      i + 1
+	    ));
+	    for (var j = 0; j < dataKeys.length; j++) {
+	      // form the table row wise from series format
+	      rows.push(_react2.default.createElement(
+	        'td',
+	        { key: "col-" + i + "-" + j },
+	        shadow[dataKeys[j]][i]
+	      ));
+	    }
+	    tbody.push(_react2.default.createElement(
+	      'tr',
+	      { key: "row-" + i },
+	      rows
+	    ));
+	  }
+	  return _react2.default.createElement(
+	    'table',
+	    { className: 'table table-hover' },
+	    _react2.default.createElement(
+	      'thead',
+	      null,
+	      head
+	    ),
+	    _react2.default.createElement(
+	      'tbody',
+	      null,
+	      tbody
+	    )
+	  );
+	};
+	
+	function getOnSubmitFunction(form, modal, saveCellButton, fdFields, onFormSubmit, onSuccess, onFailure) {
+	  /*
+	  Function returns a fuction to be used for the onSubmit handler
+	  */
+	  return function (e) {
+	    e.preventDefault();
+	    // do a direct DOM manipulation here,
+	    // I know it's a hack, but the other option is too lengthy
+	    // to achieve a very small effect
+	    var fd = new FormData($(form)[0]);
+	    for (var field in fdFields) {
+	      fd.append(field, fdFields[field]);
+	    }
+	    $(saveCellButton).text("Submitting");
+	    $(saveCellButton).addClass('disabled').attr('disabled', true);
+	    $(".cancel").addClass('disabled').attr('disabled', true);
+	
+	    onFormSubmit({ formData: fd }, $(form).attr('action'), function (data) {
+	      $(saveCellButton).text("Save");
+	      $(saveCellButton).removeClass('disabled').attr('disabled', false);
+	      $(".cancel").removeClass('disabled').attr('disabled', false);
+	      $(modal).modal('toggle');
+	      onSuccess(data);
+	    }
+	
+	    // request has failed
+	    , function (data) {
+	      $(saveCellButton).text("Save");
+	      $(saveCellButton).removeClass('disabled').attr('disabled', false);
+	      $(".cancel").removeClass('disabled').attr('disabled', false);
+	      $(".submit-error").show();
+	      onFailure(data);
+	    });
+	  };
+	}
+	exports.default = DashBoardModalComponent;
+
+/***/ },
+/* 237 */
 /*!*******************************!*\
   !*** ./src/reducers/index.js ***!
   \*******************************/
@@ -25291,9 +26675,17 @@
 	});
 	exports.mainReducer = exports.sideMenu = undefined;
 	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+	
 	var _redux = __webpack_require__(/*! redux */ 183);
 	
+	var _reactAddonsUpdate = __webpack_require__(/*! react-addons-update */ 238);
+	
+	var _reactAddonsUpdate2 = _interopRequireDefault(_reactAddonsUpdate);
+	
 	var _actions = __webpack_require__(/*! ../actions */ 225);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } /*
 	                                                                                                                                                                                                    Module that contains all the reducers for the app.
@@ -25307,7 +26699,19 @@
 	                                                                                                                                                                                                    
 	                                                                                                                                                                                                    Each reducer is named the same as the property name in the state
 	                                                                                                                                                                                                    */
+	// for updating arrays
 	
+	// dashboard actions
+	// cell actions
+	// form actions
+	// datasetform actions
+	
+	
+	// head actions
+	
+	
+	// only for debugging purposes, remove later
+	window.update = _reactAddonsUpdate2.default;
 	
 	/*
 	Define the initialState
@@ -25320,8 +26724,14 @@
 	This reducer is for the sidemenu bar. 
 	the sideMenu part of the state looks like this
 	sideMenu : {
-		sideMenuItems: [{name:"Dashboards",subItems:["CPM","Bugdb"]},
-		        {name:"profile"}
+		sideMenuItems: [{name:"Dashboards",
+	                  subItems:[{title:"CPM",api:"http://.."},{title:"Bugdb",api:"http://.."}],
+	                  icon:"dashboards",
+	                  addNew:{title:"New Dashboard"}},  // addNew attribute is for those sidemenu items that have a new form.
+		                {name:"profile",
+	                  subItems:[**this needs to be present for every name, even if there are no subItems**],
+	                  icon:"profile",  // the icon name is the bootstrap awesome font name
+	                  }
 		]
 	}
 	*/
@@ -25337,11 +26747,18 @@
 	                return Object.assign({}, state, { sideMenuItems: sideMenuItems(state.sideMenuItems, action),
 	                    selected: state.selected });
 	            }
-	        case "CLICK_SIDEMENU_ITEM":
+	
+	        case _actions.ADD_SIDEMENU_SUBITEM:
+	            {
+	                return Object.assign({}, state, { sideMenuItems: sideMenuItems(state.sideMenuItems, action),
+	                    selected: state.selected });
+	            }
+	        case _actions.CLICK_SIDEMENU_ITEM:
 	            {
 	                /*
 	                No need to deal with sideMenuItems, only update the selected property
 	                */
+	
 	                return Object.assign({}, state, { selected: action.selected });
 	            }
 	        default:
@@ -25361,6 +26778,27 @@
 	                    subItems: action.subItems
 	                }]);
 	            }
+	        case _actions.ADD_SIDEMENU_SUBITEM:
+	            {
+	                var _ret = function () {
+	                    // find the submenuitem which has this name
+	                    var stateItem = state.filter(function (v) {
+	                        return v.name === action.name;
+	                    })[0];
+	
+	                    stateItem.subItems.push(action.subItem);
+	                    return {
+	                        v: state.map(function (v) {
+	                            if (v.name === stateItem.name) {
+	                                return stateItem;
+	                            }
+	                            return v;
+	                        })
+	                    };
+	                }();
+	
+	                if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+	            }
 	        default:
 	            return state;
 	    }
@@ -25372,7 +26810,10 @@
 	The state is as folows:
 	
 	mainFrame = {
-	    displaying: "dashboards",
+	    displaying: "Dashboards", // this value comes from state.sidemenu.sideMenuItems[i].name
+	    isFetching: false,       // if page is being fetched from ajax
+	    submitted: false,  // optional - onlny set for new forms
+	    success:false,     // optional - only set for new forms
 	    data: {
 	        title:"CPM",
 	        cells:[
@@ -25409,11 +26850,12 @@
 	            }
 	        case _actions.FETCH_DASHBOARD_SUCCESS:
 	            {
-	                console.log(action);
+	
 	                return Object.assign({}, { displaying: action.displaying,
 	                    data: action.data }, { isFetching: false });
 	            }
 	
+	        case _actions.APPEND_NEW_CELL:
 	        case _actions.FETCH_CELL_REQUEST:
 	        case _actions.FETCH_CELL_SUCCESS:
 	            {
@@ -25424,6 +26866,46 @@
 	        case _actions.FETCH_OVERVIEW:
 	            {
 	                return Object.assign({}, { displaying: action.displaying }, { isFetching: false });
+	            }
+	
+	        case _actions.FETCH_NEW_DATASET_FORM:
+	            {
+	                return Object.assign({}, { displaying: action.displaying }, { isFetching: false });
+	            }
+	        case _actions.FETCH_NEW_DASHBOARD_FORM:
+	            {
+	                return Object.assign({}, { displaying: action.displaying }, { isFetching: false, submitted: false });
+	            }
+	
+	        case _actions.SUBMIT_FORM_REQUEST:
+	            {
+	                return Object.assign({}, state, { isFetching: true, submitted: false });
+	            }
+	
+	        case _actions.SUBMIT_FORM_SUCCESS:
+	            {
+	                return Object.assign({}, state, { isFetching: false, submitted: true, success: true });
+	            }
+	
+	        case _actions.SUBMIT_FORM_FAIL:
+	            {
+	                return Object.assign({}, state, { isFetching: false, submitted: true, succes: false });
+	            }
+	
+	        // from new dataset form actions
+	        case _actions.SUBMIT_DATASET_FORM_SUCCESS:
+	            {
+	                return Object.assign({}, state, { isFetching: false, submitted: true, success: true });
+	            }
+	        // from new dataset form actions
+	        case _actions.SUBMIT_DASHBOARD_FORM_SUCCESS:
+	            {
+	                return Object.assign({}, state, { isFetching: false, submitted: true, success: true });
+	            }
+	
+	        case _actions.FETCH_HEAD_SUCCESS:
+	            {
+	                return Object.assign({}, state, { head: Object.assign({}, action.head) });
 	            }
 	
 	        default:
@@ -25447,6 +26929,12 @@
 	
 	    switch (action.type) {
 	
+	        case _actions.APPEND_NEW_CELL:
+	            {
+	                return (0, _reactAddonsUpdate2.default)(state, { $push: [{ isFetching: false,
+	                        payload: action.payload,
+	                        api: action.api }] });
+	            }
 	        case _actions.FETCH_CELL_REQUEST:
 	        case _actions.FETCH_CELL_SUCCESS:
 	            {
@@ -25478,6 +26966,7 @@
 	                    api: action.api,
 	                    payload: action.payload };
 	            }
+	
 	        default:
 	            return state;
 	    }
@@ -25506,7 +26995,136 @@
 	};
 
 /***/ },
-/* 231 */
+/* 238 */
+/*!****************************************!*\
+  !*** ./~/react-addons-update/index.js ***!
+  \****************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(/*! react/lib/update */ 239);
+
+/***/ },
+/* 239 */
+/*!*******************************!*\
+  !*** ./~/react/lib/update.js ***!
+  \*******************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-present, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 */
+	
+	/* global hasOwnProperty:true */
+	
+	'use strict';
+	
+	var _prodInvariant = __webpack_require__(/*! ./reactProdInvariant */ 7),
+	    _assign = __webpack_require__(/*! object-assign */ 4);
+	
+	var invariant = __webpack_require__(/*! fbjs/lib/invariant */ 8);
+	var hasOwnProperty = {}.hasOwnProperty;
+	
+	function shallowCopy(x) {
+	  if (Array.isArray(x)) {
+	    return x.concat();
+	  } else if (x && typeof x === 'object') {
+	    return _assign(new x.constructor(), x);
+	  } else {
+	    return x;
+	  }
+	}
+	
+	var COMMAND_PUSH = '$push';
+	var COMMAND_UNSHIFT = '$unshift';
+	var COMMAND_SPLICE = '$splice';
+	var COMMAND_SET = '$set';
+	var COMMAND_MERGE = '$merge';
+	var COMMAND_APPLY = '$apply';
+	
+	var ALL_COMMANDS_LIST = [COMMAND_PUSH, COMMAND_UNSHIFT, COMMAND_SPLICE, COMMAND_SET, COMMAND_MERGE, COMMAND_APPLY];
+	
+	var ALL_COMMANDS_SET = {};
+	
+	ALL_COMMANDS_LIST.forEach(function (command) {
+	  ALL_COMMANDS_SET[command] = true;
+	});
+	
+	function invariantArrayCase(value, spec, command) {
+	  !Array.isArray(value) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): expected target of %s to be an array; got %s.', command, value) : _prodInvariant('1', command, value) : void 0;
+	  var specValue = spec[command];
+	  !Array.isArray(specValue) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): expected spec of %s to be an array; got %s. Did you forget to wrap your parameter in an array?', command, specValue) : _prodInvariant('2', command, specValue) : void 0;
+	}
+	
+	/**
+	 * Returns a updated shallow copy of an object without mutating the original.
+	 * See https://facebook.github.io/react/docs/update.html for details.
+	 */
+	function update(value, spec) {
+	  !(typeof spec === 'object') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): You provided a key path to update() that did not contain one of %s. Did you forget to include {%s: ...}?', ALL_COMMANDS_LIST.join(', '), COMMAND_SET) : _prodInvariant('3', ALL_COMMANDS_LIST.join(', '), COMMAND_SET) : void 0;
+	
+	  if (hasOwnProperty.call(spec, COMMAND_SET)) {
+	    !(Object.keys(spec).length === 1) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Cannot have more than one key in an object with %s', COMMAND_SET) : _prodInvariant('4', COMMAND_SET) : void 0;
+	
+	    return spec[COMMAND_SET];
+	  }
+	
+	  var nextValue = shallowCopy(value);
+	
+	  if (hasOwnProperty.call(spec, COMMAND_MERGE)) {
+	    var mergeObj = spec[COMMAND_MERGE];
+	    !(mergeObj && typeof mergeObj === 'object') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): %s expects a spec of type \'object\'; got %s', COMMAND_MERGE, mergeObj) : _prodInvariant('5', COMMAND_MERGE, mergeObj) : void 0;
+	    !(nextValue && typeof nextValue === 'object') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): %s expects a target of type \'object\'; got %s', COMMAND_MERGE, nextValue) : _prodInvariant('6', COMMAND_MERGE, nextValue) : void 0;
+	    _assign(nextValue, spec[COMMAND_MERGE]);
+	  }
+	
+	  if (hasOwnProperty.call(spec, COMMAND_PUSH)) {
+	    invariantArrayCase(value, spec, COMMAND_PUSH);
+	    spec[COMMAND_PUSH].forEach(function (item) {
+	      nextValue.push(item);
+	    });
+	  }
+	
+	  if (hasOwnProperty.call(spec, COMMAND_UNSHIFT)) {
+	    invariantArrayCase(value, spec, COMMAND_UNSHIFT);
+	    spec[COMMAND_UNSHIFT].forEach(function (item) {
+	      nextValue.unshift(item);
+	    });
+	  }
+	
+	  if (hasOwnProperty.call(spec, COMMAND_SPLICE)) {
+	    !Array.isArray(value) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Expected %s target to be an array; got %s', COMMAND_SPLICE, value) : _prodInvariant('7', COMMAND_SPLICE, value) : void 0;
+	    !Array.isArray(spec[COMMAND_SPLICE]) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): expected spec of %s to be an array of arrays; got %s. Did you forget to wrap your parameters in an array?', COMMAND_SPLICE, spec[COMMAND_SPLICE]) : _prodInvariant('8', COMMAND_SPLICE, spec[COMMAND_SPLICE]) : void 0;
+	    spec[COMMAND_SPLICE].forEach(function (args) {
+	      !Array.isArray(args) ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): expected spec of %s to be an array of arrays; got %s. Did you forget to wrap your parameters in an array?', COMMAND_SPLICE, spec[COMMAND_SPLICE]) : _prodInvariant('8', COMMAND_SPLICE, spec[COMMAND_SPLICE]) : void 0;
+	      nextValue.splice.apply(nextValue, args);
+	    });
+	  }
+	
+	  if (hasOwnProperty.call(spec, COMMAND_APPLY)) {
+	    !(typeof spec[COMMAND_APPLY] === 'function') ? process.env.NODE_ENV !== 'production' ? invariant(false, 'update(): expected spec of %s to be a function; got %s.', COMMAND_APPLY, spec[COMMAND_APPLY]) : _prodInvariant('9', COMMAND_APPLY, spec[COMMAND_APPLY]) : void 0;
+	    nextValue = spec[COMMAND_APPLY](nextValue);
+	  }
+	
+	  for (var k in spec) {
+	    if (!(ALL_COMMANDS_SET.hasOwnProperty(k) && ALL_COMMANDS_SET[k])) {
+	      nextValue[k] = update(value[k], spec[k]);
+	    }
+	  }
+	
+	  return nextValue;
+	}
+	
+	module.exports = update;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! (webpack)/~/node-libs-browser/~/process/browser.js */ 3)))
+
+/***/ },
+/* 240 */
 /*!************************************!*\
   !*** ./~/redux-thunk/lib/index.js ***!
   \************************************/
@@ -25537,7 +27155,7 @@
 	exports['default'] = thunk;
 
 /***/ },
-/* 232 */
+/* 241 */
 /*!*************************************!*\
   !*** ./~/redux-logger/lib/index.js ***!
   \*************************************/
@@ -25551,11 +27169,11 @@
 	  value: true
 	});
 	
-	var _core = __webpack_require__(/*! ./core */ 233);
+	var _core = __webpack_require__(/*! ./core */ 242);
 	
-	var _helpers = __webpack_require__(/*! ./helpers */ 234);
+	var _helpers = __webpack_require__(/*! ./helpers */ 243);
 	
-	var _defaults = __webpack_require__(/*! ./defaults */ 237);
+	var _defaults = __webpack_require__(/*! ./defaults */ 246);
 	
 	var _defaults2 = _interopRequireDefault(_defaults);
 	
@@ -25658,7 +27276,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 233 */
+/* 242 */
 /*!************************************!*\
   !*** ./~/redux-logger/lib/core.js ***!
   \************************************/
@@ -25671,9 +27289,9 @@
 	});
 	exports.printBuffer = printBuffer;
 	
-	var _helpers = __webpack_require__(/*! ./helpers */ 234);
+	var _helpers = __webpack_require__(/*! ./helpers */ 243);
 	
-	var _diff = __webpack_require__(/*! ./diff */ 235);
+	var _diff = __webpack_require__(/*! ./diff */ 244);
 	
 	var _diff2 = _interopRequireDefault(_diff);
 	
@@ -25802,7 +27420,7 @@
 	}
 
 /***/ },
-/* 234 */
+/* 243 */
 /*!***************************************!*\
   !*** ./~/redux-logger/lib/helpers.js ***!
   \***************************************/
@@ -25829,7 +27447,7 @@
 	var timer = exports.timer = typeof performance !== "undefined" && performance !== null && typeof performance.now === "function" ? performance : Date;
 
 /***/ },
-/* 235 */
+/* 244 */
 /*!************************************!*\
   !*** ./~/redux-logger/lib/diff.js ***!
   \************************************/
@@ -25842,7 +27460,7 @@
 	});
 	exports.default = diffLogger;
 	
-	var _deepDiff = __webpack_require__(/*! deep-diff */ 236);
+	var _deepDiff = __webpack_require__(/*! deep-diff */ 245);
 	
 	var _deepDiff2 = _interopRequireDefault(_deepDiff);
 	
@@ -25928,7 +27546,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 236 */
+/* 245 */
 /*!*********************************************!*\
   !*** ./~/redux-logger/~/deep-diff/index.js ***!
   \*********************************************/
@@ -26360,7 +27978,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 237 */
+/* 246 */
 /*!****************************************!*\
   !*** ./~/redux-logger/lib/defaults.js ***!
   \****************************************/
@@ -26412,6 +28030,38 @@
 	  transformer: undefined
 	};
 	module.exports = exports['default'];
+
+/***/ },
+/* 247 */
+/*!************************************!*\
+  !*** ./~/redux-multi/lib/index.js ***!
+  \************************************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	/**
+	 * Redux dispatch multiple actions
+	 */
+	
+	function multi(_ref) {
+	  var dispatch = _ref.dispatch;
+	
+	  return function (next) {
+	    return function (action) {
+	      return Array.isArray(action) ? action.filter(Boolean).map(dispatch) : next(action);
+	    };
+	  };
+	}
+	
+	/**
+	 * Exports
+	 */
+	
+	exports.default = multi;
 
 /***/ }
 /******/ ]);

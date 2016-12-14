@@ -3,7 +3,11 @@ Component for mainFrame
 Components need to be pure functions, implement the same as one
 */
 import React, { PropTypes } from 'react'
-import CellComponent from './CellComponent'
+import NewDatasetContainer from '../containers/NewDatasetContainer'
+import NewDashBoardContainer from '../containers/NewDashBoardContainer'
+import {DashBoardViewComponent,DashBoardEditComponent} from './DashBoardComponent'
+
+
 
 /*
 MainFrameComponent,
@@ -28,28 +32,21 @@ const MainFrameComponent = ({mainFrame})=>{
     			);
     		}
     	    return (
-    	    	<DashBoardViewComponent data={mainFrame.data}/>
+    	    	<DashBoardEditComponent data={mainFrame.data}/>
     	    	);
     	}
-    	case "overview":{
+        case "New Dataset":{
+            return <NewDatasetContainer />;
+        }
+        case "New DashBoard":{
+            return <NewDashBoardContainer />;
+        }
+    	case "Overview":{
     		return <div />;
     	}
     	default: return <div />;
     }
 }
 
-const DashBoardViewComponent = ({data}) => {
-    // Get the data.cells
-    let cells = data.cells.map((cell,i)=>(<CellComponent  key={"cell-"+i} cellKey={"cell-"+i} {...cell}/>));
-    return(
-    	   <div>
-    	      <div className="page-header">
-                <h1>{data.title}</h1>
-              </div>
-              {cells}
-           </div>
-    	);
-
-}
 
 export default MainFrameComponent;
