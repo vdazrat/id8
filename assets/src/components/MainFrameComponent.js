@@ -6,6 +6,7 @@ import React, { PropTypes } from 'react'
 import NewDatasetContainer from '../containers/NewDatasetContainer'
 import NewDashBoardContainer from '../containers/NewDashBoardContainer'
 import {DashBoardViewComponent,DashBoardEditComponent} from './DashBoardComponent'
+import OverviewComponent from './OverviewComponent'
 
 
 
@@ -42,7 +43,7 @@ const MainFrameComponent = ({mainFrame})=>{
             return <NewDashBoardContainer />;
         }
     	case "Overview":{
-    		return <div />;
+    		return <OverviewComponent />;
     	}
     	default: return <div />;
     }

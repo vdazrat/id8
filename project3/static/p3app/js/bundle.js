@@ -67,21 +67,21 @@
 	
 	var _MainFrameContainer2 = _interopRequireDefault(_MainFrameContainer);
 	
-	var _reducers = __webpack_require__(/*! ./reducers */ 237);
+	var _reducers = __webpack_require__(/*! ./reducers */ 238);
 	
 	var _MainFrameComponent = __webpack_require__(/*! ./components/MainFrameComponent */ 227);
 	
 	var _MainFrameComponent2 = _interopRequireDefault(_MainFrameComponent);
 	
-	var _reduxThunk = __webpack_require__(/*! redux-thunk */ 240);
+	var _reduxThunk = __webpack_require__(/*! redux-thunk */ 241);
 	
 	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
 	
-	var _reduxLogger = __webpack_require__(/*! redux-logger */ 241);
+	var _reduxLogger = __webpack_require__(/*! redux-logger */ 242);
 	
 	var _reduxLogger2 = _interopRequireDefault(_reduxLogger);
 	
-	var _reduxMulti = __webpack_require__(/*! redux-multi */ 247);
+	var _reduxMulti = __webpack_require__(/*! redux-multi */ 248);
 	
 	var _reduxMulti2 = _interopRequireDefault(_reduxMulti);
 	
@@ -25186,6 +25186,10 @@
 	
 	var _DashBoardComponent = __webpack_require__(/*! ./DashBoardComponent */ 232);
 	
+	var _OverviewComponent = __webpack_require__(/*! ./OverviewComponent */ 237);
+	
+	var _OverviewComponent2 = _interopRequireDefault(_OverviewComponent);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	/*
@@ -25199,10 +25203,6 @@
 		    cells: [...]
 		}
 	}
-	*/
-	/*
-	Component for mainFrame 
-	Components need to be pure functions, implement the same as one
 	*/
 	var MainFrameComponent = function MainFrameComponent(_ref) {
 	    var mainFrame = _ref.mainFrame;
@@ -25231,13 +25231,15 @@
 	            }
 	        case "Overview":
 	            {
-	                return _react2.default.createElement('div', null);
+	                return _react2.default.createElement(_OverviewComponent2.default, null);
 	            }
 	        default:
 	            return _react2.default.createElement('div', null);
 	    }
-	};
-	
+	}; /*
+	   Component for mainFrame 
+	   Components need to be pure functions, implement the same as one
+	   */
 	exports.default = MainFrameComponent;
 
 /***/ },
@@ -26663,6 +26665,284 @@
 
 /***/ },
 /* 237 */
+/*!*********************************************!*\
+  !*** ./src/components/OverviewComponent.js ***!
+  \*********************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               Overview component
+	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               */
+	
+	var OverviewComponent = function (_React$Component) {
+	    _inherits(OverviewComponent, _React$Component);
+	
+	    function OverviewComponent() {
+	        _classCallCheck(this, OverviewComponent);
+	
+	        return _possibleConstructorReturn(this, (OverviewComponent.__proto__ || Object.getPrototypeOf(OverviewComponent)).apply(this, arguments));
+	    }
+	
+	    _createClass(OverviewComponent, [{
+	        key: 'render',
+	        value: function render() {
+	            return _react2.default.createElement(
+	                'div',
+	                { className: 'Overview-panel' },
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'row' },
+	                    _react2.default.createElement(
+	                        'div',
+	                        { className: 'page-header' },
+	                        _react2.default.createElement(
+	                            'h1',
+	                            null,
+	                            'Overview'
+	                        )
+	                    ),
+	                    _react2.default.createElement(
+	                        'div',
+	                        { className: 'col-sm-8' },
+	                        _react2.default.createElement(WatchChartComponent, null)
+	                    ),
+	                    _react2.default.createElement(
+	                        'div',
+	                        { className: 'col-sm-4' },
+	                        _react2.default.createElement(
+	                            'div',
+	                            { className: 'sidelist' },
+	                            _react2.default.createElement(
+	                                'div',
+	                                { className: 'panel panel-default recent-panel' },
+	                                _react2.default.createElement(
+	                                    'div',
+	                                    { className: 'panel-heading' },
+	                                    'Recent Activity'
+	                                ),
+	                                _react2.default.createElement(
+	                                    'div',
+	                                    { className: 'panel-body' },
+	                                    _react2.default.createElement(
+	                                        'ul',
+	                                        { className: 'recent-item-list' },
+	                                        _react2.default.createElement(
+	                                            'li',
+	                                            { className: 'recent-item' },
+	                                            _react2.default.createElement(
+	                                                'a',
+	                                                { href: '#' },
+	                                                'Resync of dataset CPM was successful'
+	                                            )
+	                                        ),
+	                                        _react2.default.createElement(
+	                                            'li',
+	                                            { className: 'recent-item' },
+	                                            _react2.default.createElement(
+	                                                'a',
+	                                                { href: '#' },
+	                                                'Resync of dataset TESTDATA failed'
+	                                            )
+	                                        ),
+	                                        _react2.default.createElement(
+	                                            'li',
+	                                            { className: 'recent-item' },
+	                                            _react2.default.createElement(
+	                                                'a',
+	                                                { href: '#' },
+	                                                'Dashboard CPM created by user VDASARAT'
+	                                            )
+	                                        )
+	                                    )
+	                                )
+	                            ),
+	                            _react2.default.createElement(
+	                                'div',
+	                                { className: 'panel panel-default faq-panel' },
+	                                _react2.default.createElement(
+	                                    'div',
+	                                    { className: 'panel-heading' },
+	                                    'FAQs'
+	                                ),
+	                                _react2.default.createElement(
+	                                    'div',
+	                                    { className: 'panel-body' },
+	                                    _react2.default.createElement(
+	                                        'ul',
+	                                        { className: 'recent-item-list' },
+	                                        _react2.default.createElement(
+	                                            'li',
+	                                            { className: 'recent-item' },
+	                                            _react2.default.createElement(
+	                                                'a',
+	                                                { href: '#' },
+	                                                'How do I upload a dataset?'
+	                                            )
+	                                        ),
+	                                        _react2.default.createElement(
+	                                            'li',
+	                                            { className: 'recent-item' },
+	                                            _react2.default.createElement(
+	                                                'a',
+	                                                { href: '#' },
+	                                                'What kind of analysis can I perfom on my data?'
+	                                            )
+	                                        ),
+	                                        _react2.default.createElement(
+	                                            'li',
+	                                            { className: 'recent-item' },
+	                                            _react2.default.createElement(
+	                                                'a',
+	                                                { href: '#' },
+	                                                'What are API syncs?'
+	                                            )
+	                                        ),
+	                                        _react2.default.createElement(
+	                                            'li',
+	                                            { className: 'recent-item' },
+	                                            _react2.default.createElement(
+	                                                'a',
+	                                                { href: '#' },
+	                                                'How can I track a certain dashboard?'
+	                                            )
+	                                        ),
+	                                        _react2.default.createElement(
+	                                            'li',
+	                                            { className: 'recent-item' },
+	                                            _react2.default.createElement(
+	                                                'a',
+	                                                { href: '#' },
+	                                                'Who can create dashboards?'
+	                                            )
+	                                        )
+	                                    )
+	                                )
+	                            )
+	                        )
+	                    )
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return OverviewComponent;
+	}(_react2.default.Component);
+	
+	/*
+	Temporary class, refactor this later
+	*/
+	
+	
+	var WatchChartComponent = function (_React$Component2) {
+	    _inherits(WatchChartComponent, _React$Component2);
+	
+	    function WatchChartComponent() {
+	        _classCallCheck(this, WatchChartComponent);
+	
+	        return _possibleConstructorReturn(this, (WatchChartComponent.__proto__ || Object.getPrototypeOf(WatchChartComponent)).apply(this, arguments));
+	    }
+	
+	    _createClass(WatchChartComponent, [{
+	        key: 'componentDidMount',
+	        value: function componentDidMount() {
+	
+	            var chart = c3.generate({
+	                bindto: '#chart',
+	                data: {
+	                    columns: [['data1', -30, 200, 200, 400, -150, 250], ['data2', 130, 100, -100, 200, -150, 50], ['data3', -230, 200, 200, -300, 250, 250]],
+	                    type: 'bar',
+	                    groups: [['data1', 'data2']]
+	                },
+	                grid: {
+	                    y: {
+	                        lines: [{ value: 0 }]
+	                    }
+	                }
+	            });
+	
+	            var chart2 = c3.generate({
+	                bindto: '#chart2',
+	                data: {
+	                    columns: [['data1', 300, 350, 300, 0, 0, 100], ['data2', 130, 100, 140, 200, 150, 50]],
+	                    types: {
+	                        data1: 'step',
+	                        data2: 'area-step'
+	                    }
+	                }
+	            });
+	
+	            var chart3 = c3.generate({
+	                bindto: '#chart3',
+	                data: {
+	                    // iris data from R
+	                    columns: [['data1', 30], ['data2', 120]],
+	                    type: 'pie'
+	
+	                }
+	            });
+	        }
+	    }, {
+	        key: 'render',
+	        value: function render() {
+	            return _react2.default.createElement(
+	                'div',
+	                { className: 'panel panel-default watch-panel' },
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'panel-heading' },
+	                    'Watching'
+	                ),
+	                _react2.default.createElement(
+	                    'div',
+	                    { className: 'panel-body' },
+	                    _react2.default.createElement(
+	                        'a',
+	                        null,
+	                        'P1 chart'
+	                    ),
+	                    _react2.default.createElement('div', { id: 'chart' }),
+	                    _react2.default.createElement(
+	                        'a',
+	                        null,
+	                        'Cumulative Total effort reduction'
+	                    ),
+	                    _react2.default.createElement('div', { id: 'chart2' }),
+	                    _react2.default.createElement(
+	                        'a',
+	                        null,
+	                        'Workload distribution'
+	                    ),
+	                    _react2.default.createElement('div', { id: 'chart3' })
+	                )
+	            );
+	        }
+	    }]);
+	
+	    return WatchChartComponent;
+	}(_react2.default.Component);
+	
+	exports.default = OverviewComponent;
+
+/***/ },
+/* 238 */
 /*!*******************************!*\
   !*** ./src/reducers/index.js ***!
   \*******************************/
@@ -26679,7 +26959,7 @@
 	
 	var _redux = __webpack_require__(/*! redux */ 183);
 	
-	var _reactAddonsUpdate = __webpack_require__(/*! react-addons-update */ 238);
+	var _reactAddonsUpdate = __webpack_require__(/*! react-addons-update */ 239);
 	
 	var _reactAddonsUpdate2 = _interopRequireDefault(_reactAddonsUpdate);
 	
@@ -26995,16 +27275,16 @@
 	};
 
 /***/ },
-/* 238 */
+/* 239 */
 /*!****************************************!*\
   !*** ./~/react-addons-update/index.js ***!
   \****************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(/*! react/lib/update */ 239);
+	module.exports = __webpack_require__(/*! react/lib/update */ 240);
 
 /***/ },
-/* 239 */
+/* 240 */
 /*!*******************************!*\
   !*** ./~/react/lib/update.js ***!
   \*******************************/
@@ -27124,7 +27404,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! (webpack)/~/node-libs-browser/~/process/browser.js */ 3)))
 
 /***/ },
-/* 240 */
+/* 241 */
 /*!************************************!*\
   !*** ./~/redux-thunk/lib/index.js ***!
   \************************************/
@@ -27155,7 +27435,7 @@
 	exports['default'] = thunk;
 
 /***/ },
-/* 241 */
+/* 242 */
 /*!*************************************!*\
   !*** ./~/redux-logger/lib/index.js ***!
   \*************************************/
@@ -27169,11 +27449,11 @@
 	  value: true
 	});
 	
-	var _core = __webpack_require__(/*! ./core */ 242);
+	var _core = __webpack_require__(/*! ./core */ 243);
 	
-	var _helpers = __webpack_require__(/*! ./helpers */ 243);
+	var _helpers = __webpack_require__(/*! ./helpers */ 244);
 	
-	var _defaults = __webpack_require__(/*! ./defaults */ 246);
+	var _defaults = __webpack_require__(/*! ./defaults */ 247);
 	
 	var _defaults2 = _interopRequireDefault(_defaults);
 	
@@ -27276,7 +27556,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 242 */
+/* 243 */
 /*!************************************!*\
   !*** ./~/redux-logger/lib/core.js ***!
   \************************************/
@@ -27289,9 +27569,9 @@
 	});
 	exports.printBuffer = printBuffer;
 	
-	var _helpers = __webpack_require__(/*! ./helpers */ 243);
+	var _helpers = __webpack_require__(/*! ./helpers */ 244);
 	
-	var _diff = __webpack_require__(/*! ./diff */ 244);
+	var _diff = __webpack_require__(/*! ./diff */ 245);
 	
 	var _diff2 = _interopRequireDefault(_diff);
 	
@@ -27420,7 +27700,7 @@
 	}
 
 /***/ },
-/* 243 */
+/* 244 */
 /*!***************************************!*\
   !*** ./~/redux-logger/lib/helpers.js ***!
   \***************************************/
@@ -27447,7 +27727,7 @@
 	var timer = exports.timer = typeof performance !== "undefined" && performance !== null && typeof performance.now === "function" ? performance : Date;
 
 /***/ },
-/* 244 */
+/* 245 */
 /*!************************************!*\
   !*** ./~/redux-logger/lib/diff.js ***!
   \************************************/
@@ -27460,7 +27740,7 @@
 	});
 	exports.default = diffLogger;
 	
-	var _deepDiff = __webpack_require__(/*! deep-diff */ 245);
+	var _deepDiff = __webpack_require__(/*! deep-diff */ 246);
 	
 	var _deepDiff2 = _interopRequireDefault(_deepDiff);
 	
@@ -27546,7 +27826,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 245 */
+/* 246 */
 /*!*********************************************!*\
   !*** ./~/redux-logger/~/deep-diff/index.js ***!
   \*********************************************/
@@ -27978,7 +28258,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 246 */
+/* 247 */
 /*!****************************************!*\
   !*** ./~/redux-logger/lib/defaults.js ***!
   \****************************************/
@@ -28032,7 +28312,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 247 */
+/* 248 */
 /*!************************************!*\
   !*** ./~/redux-multi/lib/index.js ***!
   \************************************/

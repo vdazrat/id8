@@ -261,3 +261,16 @@ Some styles for the mainframe dashboards and cells
      .cell-content-row{
         margin-top:100px;
      }
+
+
+/* Styles for overview*/
+.recent-item-list{
+      list-style: None;
+      padding-left: 0;
+    }
+    .recent-item>a{
+      text-decoration: None;
+    }
+.sidelist{
+  position:fixed;
+}
