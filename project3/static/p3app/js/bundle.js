@@ -26001,13 +26001,14 @@
 	      window.c3Data = c3Data;
 	      var bindId = "#chart-" + this.props.cellKey;
 	
-	      c3.generate({ bindto: bindId,
-	        data: c3Data,
+	      var c3params = Object.assign({}, { bindto: bindId,
 	        legend: {
 	          position: 'right'
-	        }
+	        },
+	        data: c3Data
+	      }, c3Data.options);
 	
-	      });
+	      c3.generate(c3params);
 	      /*
 	       c3.generate({
 	      data: {
@@ -26051,12 +26052,73 @@
 	          columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
 	        }, { type: 'pie' });
 	      }
-	    case 'bar':
+	    case 'hist':
 	      {
 	
 	        return Object.assign({}, {
 	          columns: (0, _p3toc.makeC3Hist)(JSON.parse(data.figures[0].dataframe))
 	        }, { type: 'bar' });
+	      }
+	    case 'stackedbar':
+	      {
+	        var dataSet = JSON.parse(data.figures[0].dataframe);
+	        var lastKey = Object.keys(dataSet).slice(-1);
+	        var len = Object.keys(dataSet[lastKey]).length;
+	        var arrLikeObj = Object.assign({}, dataSet[lastKey], { length: len });
+	        var lastArr = Array.from(arrLikeObj);
+	
+	        return Object.assign({}, {
+	          columns: (0, _p3toc.makeC3Bar)(dataSet)
+	        }, {
+	          type: 'bar',
+	          groups: [Object.keys(dataSet).slice(0, -1)
+	          //['data1', 'data2','data3']
+	          ],
+	          order: 'asc',
+	          options: {
+	            bar: {
+	              width: {
+	                ratio: 0.5 // this makes bar width 50% of length between ticks
+	              }
+	            },
+	
+	            axis: {
+	              x: {
+	                type: 'category',
+	                categories: lastArr
+	              }
+	
+	            }
+	          }
+	        });
+	      }
+	    case 'bar':
+	      {
+	        var _dataSet = JSON.parse(data.figures[0].dataframe);
+	        var _lastKey = Object.keys(_dataSet).slice(-1);
+	        var _len = Object.keys(_dataSet[_lastKey]).length;
+	        var _arrLikeObj = Object.assign({}, _dataSet[_lastKey], { length: _len });
+	        var _lastArr = Array.from(_arrLikeObj);
+	
+	        return Object.assign({}, {
+	          columns: (0, _p3toc.makeC3Bar)(_dataSet)
+	        }, {
+	          type: 'bar',
+	          options: {
+	            bar: {
+	              width: {
+	                ratio: 0.5 // this makes bar width 50% of length between ticks
+	              }
+	            },
+	            axis: {
+	              x: {
+	                type: 'category',
+	                categories: _lastArr
+	              }
+	
+	            }
+	          }
+	        });
 	      }
 	  }
 	};
@@ -26108,11 +26170,37 @@
 	    return columns;
 	};
 	
+	window.makeC3Hist = makeC3Hist;
 	var objToArr = exports.objToArr = function objToArr(arrayLike) {
 	    var keys = Object.keys(arrayLike);
 	    return keys.map(function (i) {
 	        return arrayLike[i];
 	    });
+	};
+	
+	/*
+	Make a C3 Bar given a panda dataframe of the type
+	{
+	data1:{0:val1,1:val2}
+	data2:{0:val3,1:val4}
+	}
+	to [
+	['data1',val1,val2],
+	['data2',val3,val4]
+	]
+	*/
+	var makeC3Bar = exports.makeC3Bar = function makeC3Bar(series) {
+	    var keys = Object.keys(series);
+	    var axisColumn = keys.slice(-1);
+	    var dataCols = keys.slice(0, -1);
+	    var columns = dataCols.map(function (val) {
+	        var len = Object.keys(series[val]).length;
+	        var arrLikeObj = Object.assign({}, series[val], { length: len });
+	        var arr = Array.from(arrLikeObj);
+	        arr.unshift(val);
+	        return arr;
+	    });
+	    return columns;
 	};
 	
 	var transformPanda = exports.transformPanda = function transformPanda(pandaObj) {
@@ -26409,13 +26497,13 @@
 	                    ),
 	                    _react2.default.createElement(
 	                      'option',
-	                      { value: 'scatter' },
-	                      'Scatter'
+	                      { value: 'stackedbar' },
+	                      'Stacked Bar'
 	                    ),
 	                    _react2.default.createElement(
 	                      'option',
-	                      { value: 'line' },
-	                      'Line'
+	                      { value: 'scatter' },
+	                      'Scatter'
 	                    )
 	                  ),
 	                  _react2.default.createElement(

@@ -110,8 +110,8 @@ const GraphModal = ({dashboard,onFormSubmit,onSuccess,onFailure}) => (
                                      <option value="pie">Pie</option>
                                      <option value="donut">Donut</option>
                                      <option value="bar">Bar</option>
+                                     <option value="stackedbar">Stacked Bar</option>
                                      <option value="scatter">Scatter</option>
-                                     <option value="line">Line</option>
 
                                     </select>
                                     <label htmlFor="title">Title</label>

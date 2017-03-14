@@ -15,7 +15,7 @@ cells is defined as a list of shape:
        ]
 */
 import React, { PropTypes } from 'react'
-import { makeC3Hist } from '../p3toc3'
+import { makeC3Hist,makeC3Bar } from '../p3toc3'
 
 const CellComponent = ({isFetching,isInvalidated,api,payload,cellKey}) =>{
 
@@ -109,15 +109,17 @@ class CellChart extends React.Component{
     	let c3Data = getC3Data(data);
         window.c3Data = c3Data;
         let bindId = "#chart-"+this.props.cellKey;
+
+        let c3params = Object.assign({},{bindto:bindId,
+                        legend: {
+                           position: 'right'
+                        },
+                        data:c3Data
+                      },c3Data.options);
+
         
         c3.generate(
-        {  bindto:bindId,
-          data: c3Data,
-          legend: {
-           position: 'right'
-          }
-
-        }
+        c3params
 
         ); 
         /*
@@ -158,11 +160,73 @@ const getC3Data = (data) => {
     			columns:makeC3Hist(JSON.parse(data.figures[0].dataframe))
     		    },{type:'pie'});
     	}
-      case 'bar':{
+      case 'hist':{
 
         return Object.assign({},{
           columns:makeC3Hist(JSON.parse(data.figures[0].dataframe))
             },{type:'bar'});
+      }
+      case 'stackedbar':{
+        let dataSet = JSON.parse(data.figures[0].dataframe);
+        let lastKey = Object.keys(dataSet).slice(-1);
+        let len = Object.keys(dataSet[lastKey]).length;
+        let arrLikeObj = Object.assign({},dataSet[lastKey],{length:len})
+        let lastArr = Array.from(arrLikeObj);
+        
+        return Object.assign({},{
+          columns:makeC3Bar(dataSet)
+            },
+            {
+             type:'bar',
+             groups: [
+                        Object.keys(dataSet).slice(0,-1)
+                        //['data1', 'data2','data3']
+                    ],
+             order:'asc',
+             options:{
+                 bar: {
+                    width: {
+                      ratio: 0.5 // this makes bar width 50% of length between ticks
+                    }
+                 },
+
+                 axis:{
+                    x: {
+                     type: 'category',
+                     categories: lastArr
+                        }
+                    
+                }
+            }
+           });
+      }
+      case 'bar':{
+        let dataSet = JSON.parse(data.figures[0].dataframe);
+        let lastKey = Object.keys(dataSet).slice(-1);
+        let len = Object.keys(dataSet[lastKey]).length;
+        let arrLikeObj = Object.assign({},dataSet[lastKey],{length:len})
+        let lastArr = Array.from(arrLikeObj);
+        
+        return Object.assign({},{
+          columns:makeC3Bar(dataSet)
+            },
+            {
+             type:'bar',
+             options:{
+                 bar: {
+                    width: {
+                      ratio: 0.5 // this makes bar width 50% of length between ticks
+                    }
+                 },
+                 axis:{
+                    x: {
+                     type: 'category',
+                     categories: lastArr
+                        }
+                    
+                }
+            }
+           });
       }
     }
 }
