@@ -22,7 +22,7 @@ class DashBoard(models.Model):
         
         # get the max sequence
         next_seq=self.cells.all().aggregate(models.Max('sequence'))['sequence__max']
-        new_cell = Cell(dashboard=self,sequence=next_seq+1)
+        new_cell = Cell(dashboard=self,sequence=next_seq is None and 1 or next_seq+1)
         new_cell.save()
         return new_cell
 

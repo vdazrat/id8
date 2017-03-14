@@ -32,9 +32,36 @@ for (let k in hist){
 return columns;
 }
 
+window.makeC3Hist = makeC3Hist;
 export const objToArr = (arrayLike) =>{
     let keys = Object.keys(arrayLike);
     return keys.map((i)=>(arrayLike[i]));
+
+}
+
+/*
+Make a C3 Bar given a panda dataframe of the type
+{
+data1:{0:val1,1:val2}
+data2:{0:val3,1:val4}
+}
+to [
+['data1',val1,val2],
+['data2',val3,val4]
+]
+*/
+export const makeC3Bar = function(series){
+    let keys = Object.keys(series);
+    let axisColumn = keys.slice(-1);
+    let dataCols = keys.slice(0,-1);
+    let columns = dataCols.map(function(val){
+        let len = Object.keys(series[val]).length;
+        let arrLikeObj = Object.assign({},series[val],{length:len})
+        let arr = Array.from(arrLikeObj);
+        arr.unshift(val);
+        return arr;
+    });
+    return columns;
 
 }
 

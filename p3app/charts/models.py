@@ -23,6 +23,7 @@ class Chart(models.Model):
                        ('donut','donut'),
                        ('hist','hist'),
                        ('bar','bar'),
+                       ('stackedbar','stackedbar'),
                        ('scatter','scatter'),
                        ('time','time'),
                       )
